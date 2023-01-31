@@ -1,0 +1,58 @@
+name: Build Redis test
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'version to build'
+        required: true
+        default: "7.0.8"
+        type: string
+      latest:
+        description: 'Indicator of whether or not is a prerelease'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Version
+        run: |
+          (ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'token ${{ secrets.ACTION_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/latest").Content).body -Replace '\(\#', '(https://github.com/redis/redis/pull/' | Set-Content .\redis_latest_body.txt
+          Invoke-WebRequest -Uri https://github.com/redis/redis/archive/refs/tags/${{ inputs.tag_name }}.tar.gz -OutFile redis-${{ inputs.tag_name }}.tar.gz
+          tar -xvf redis-${{ inputs.tag_name }}.tar.gz
+        shell: pwsh
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: gcc make pkg-config
+      - name: Build Redis
+        if: ${{ success() }}
+        run: |
+          workspace=$(pwd)
+          sed -i 's/__GNU_VISIBLE/1/' /d/a/_temp/msys64/usr/include/dlfcn.h
+          cd redis-${{ inputs.tag_name }} && make -i PREFIX=$workspace/dist install
+          cp /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf ../dist/bin/
+          cd ../dist/
+          mv bin Redis-${{ inputs.tag_name }}-Windows-x64
+          tar -cvzf ../Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64/*
+
+      - name: Release
+        if: ${{ success() }}
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.ACTION_TOKEN }}
+          name: Redis ${{ inputs.tag_name }} for Windows
+          tag_name: ${{ inputs.tag_name }}
+          body_path: redis_latest_body.txt
+          prerelease: ${{ inputs.latest }}
+          files: |
+            Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz
