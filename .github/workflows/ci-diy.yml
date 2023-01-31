@@ -1,4 +1,4 @@
-name: Build Redis test
+name: Build Redis DIY
 
 on:
   workflow_dispatch:
