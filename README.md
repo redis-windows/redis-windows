@@ -1,15 +1,32 @@
-# Redis5-on-Windows
-可以在Windows运行的redis 5.0.7
+# Redis 7.0.8 for Windows
 
-启动脚本：`start_redis5.bat`基于`RunHiddenConsole.exe`实现了redis后台无窗口运行，运行前记得修改路径  
-停止命令：`taskkill /F /IM redis-server.exe > nul`
+start the Redis server like so:
 
-默认密码是 `root`
-可在`redis.windows.conf`的第445行修改`requirepass root`
+cmd start
+```shell
+redis-server.exe redis.conf
+```
+powershell start
+```shell
+./redis-server.exe redis.conf
+```
+
+![image](https://user-images.githubusercontent.com/515784/215540157-65f55297-cde2-49b3-8ab3-14dca7e11ee0.png)
 
 
+Upgrade urgency: SECURITY, contains fixes to security issues.
 
+Security Fixes:
+* (CVE-2022-35977) Integer overflow in the Redis SETRANGE and SORT/SORT_RO
+  commands can drive Redis to OOM panic
+* (CVE-2023-22458) Integer overflow in the Redis HRANDFIELD and ZRANDMEMBER
+  commands can lead to denial-of-service
 
+Bug Fixes
+=========
 
-
-编译参考 https://www.cnblogs.com/LUA123/p/11447163.html
+* Avoid possible hang when client issues long KEYS, SRANDMEMBER, HRANDFIELD,
+  and ZRANDMEMBER commands and gets disconnected by client output buffer limit (https://github.com/redis/redis/pull/11676)
+* Make sure that fork child doesn't do incremental rehashing (https://github.com/redis/redis/pull/11692)
+* Fix a bug where blocking commands with a sub-second timeout would block forever (https://github.com/redis/redis/pull/11688)
+* Fix sentinel issue if replica changes IP (https://github.com/redis/redis/pull/11590)
