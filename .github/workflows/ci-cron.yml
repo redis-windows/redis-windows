@@ -1,4 +1,4 @@
-name: Build Redis
+name: Cron Build Redis
 
 on:
   schedule:
