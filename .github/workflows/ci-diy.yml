@@ -30,6 +30,11 @@ jobs:
           tar -xvf redis-${{ inputs.tag_name }}.tar.gz
         shell: pwsh
 
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+      - run: |
+          dotnet publish -c Release -r win-x64 --sc
+
       - uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -44,6 +49,9 @@ jobs:
           cd $workspace/dist/
           mv bin Redis-${{ inputs.tag_name }}-Windows-x64
           tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64/*
+          cp $workspace/publish/* Redis-${{ inputs.tag_name }}-Windows-x64/
+          mv Redis-${{ inputs.tag_name }}-Windows-x64 Redis-${{ inputs.tag_name }}-Windows-x64-with-Service
+          tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-with-Service/*
 
       - name: Release
         if: ${{ success() }}
@@ -56,3 +64,4 @@ jobs:
           prerelease: ${{ inputs.latest }}
           files: |
             Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz
+            Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz
