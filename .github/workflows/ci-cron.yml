@@ -33,6 +33,12 @@ jobs:
           tar -xvf redis-$($res.tag_name).tar.gz
         shell: pwsh
 
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+      - run: |
+          dotnet publish -c Release -r win-x64 --sc
+        shell: pwsh
+
       - uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -42,10 +48,13 @@ jobs:
         run: |
           sed -i 's/__GNU_VISIBLE/1/' /d/a/_temp/msys64/usr/include/dlfcn.h
           cd redis-${{ env.RELEASE_VERSION }} && make -i PREFIX=$GITHUB_WORKSPACE/dist install
-          cp $GITHUB_WORKSPACE/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf $GITHUB_WORKSPACE/dist/bin/
+          cp $GITHUB_WORKSPACE/README.md $GITHUB_WORKSPACE/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf $GITHUB_WORKSPACE/dist/bin/
           cd $GITHUB_WORKSPACE/dist/
           mv bin Redis-${{ env.RELEASE_VERSION }}-Windows-x64
           tar -cvzf $GITHUB_WORKSPACE/Redis-${{ env.RELEASE_VERSION }}-Windows-x64.tar.gz Redis-${{ env.RELEASE_VERSION }}-Windows-x64/*
+          cp $GITHUB_WORKSPACE/publish/* Redis-${{ inputs.tag_name }}-Windows-x64/
+          mv Redis-${{ inputs.tag_name }}-Windows-x64 Redis-${{ inputs.tag_name }}-Windows-x64-with-Service
+          tar -cvzf $GITHUB_WORKSPACE/Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-with-Service/*
 
       - name: Update
         if: ${{ success() }}
@@ -67,3 +76,4 @@ jobs:
           body_path: redis_latest_body.txt
           files: |
             Redis-${{ env.RELEASE_VERSION }}-Windows-x64.tar.gz
+            Redis-${{ env.RELEASE_VERSION }}-Windows-x64-with-Service.tar.gz
