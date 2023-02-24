@@ -28,7 +28,8 @@ jobs:
           Invoke-WebRequest -Uri https://github.com/redis/redis/archive/refs/tags/${{ inputs.tag_name }}.tar.gz -OutFile redis-${{ inputs.tag_name }}.tar.gz
           tar -xvf redis-${{ inputs.tag_name }}.tar.gz
         shell: pwsh
-
+        
+      - uses: actions/checkout@v3
       - uses: msys2/setup-msys2@v2
         with:
           update: true
