@@ -40,3 +40,8 @@ powershell start
 ```
 
 ![image](https://user-images.githubusercontent.com/515784/215540157-65f55297-cde2-49b3-8ab3-14dca7e11ee0.png)
+
+
+Project Home: https://github.com/redis-windows/redis-windows
+
+express gratitude: https://www.zhihu.com/question/424272611/answer/2611312760
