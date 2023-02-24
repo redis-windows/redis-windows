@@ -23,7 +23,7 @@ jobs:
           }
           $res = ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'token ${{ secrets.ACTION_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/latest").Content
           If ( $res.tag_name -eq ( Get-Content .github\redis_latest_version.txt )) { 
-            Write-Output "Game over!"
+            Write-Output "No new version"
             exit 1
           }
           $res.tag_name | Out-File -FilePath .github\redis_latest_version.txt -NoNewline -Encoding ascii
@@ -42,10 +42,10 @@ jobs:
         run: |
           sed -i 's/__GNU_VISIBLE/1/' /d/a/_temp/msys64/usr/include/dlfcn.h
           cd redis-${{ env.RELEASE_VERSION }} && make -i PREFIX=$GITHUB_WORKSPACE/dist install
-          cp $GITHUB_WORKSPACE/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf ../dist/bin/
-          cd ../dist/
+          cp $GITHUB_WORKSPACE/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf $GITHUB_WORKSPACE/dist/bin/
+          cd $GITHUB_WORKSPACE/dist/
           mv bin Redis-${{ env.RELEASE_VERSION }}-Windows-x64
-          tar -cvzf ../Redis-${{ env.RELEASE_VERSION }}-Windows-x64.tar.gz Redis-${{ env.RELEASE_VERSION }}-Windows-x64/*
+          tar -cvzf $GITHUB_WORKSPACE/Redis-${{ env.RELEASE_VERSION }}-Windows-x64.tar.gz Redis-${{ env.RELEASE_VERSION }}-Windows-x64/*
 
       - name: Update
         if: ${{ success() }}
