@@ -39,7 +39,7 @@ jobs:
           workspace=$(pwd)
           sed -i 's/__GNU_VISIBLE/1/' /d/a/_temp/msys64/usr/include/dlfcn.h
           cd redis-${{ inputs.tag_name }} && make -i PREFIX=$workspace/dist install
-          cp /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf ../dist/bin/
+          cp $GITHUB_WORKSPACE/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf ../dist/bin/
           cd ../dist/
           mv bin Redis-${{ inputs.tag_name }}-Windows-x64
           tar -cvzf ../Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64/*
