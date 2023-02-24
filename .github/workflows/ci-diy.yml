@@ -34,6 +34,7 @@ jobs:
         uses: actions/setup-dotnet@v3
       - run: |
           dotnet publish -c Release -r win-x64 --sc
+        shell: pwsh
 
       - uses: msys2/setup-msys2@v2
         with:
