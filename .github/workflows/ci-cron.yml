@@ -46,15 +46,16 @@ jobs:
       - name: Build Redis
         if: ${{ success() }}
         run: |
+          workspace=$(pwd)
           sed -i 's/__GNU_VISIBLE/1/' /d/a/_temp/msys64/usr/include/dlfcn.h
-          cd redis-${{ env.RELEASE_VERSION }} && make -i PREFIX=$GITHUB_WORKSPACE/dist install
-          cp $GITHUB_WORKSPACE/README.md $GITHUB_WORKSPACE/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf $GITHUB_WORKSPACE/dist/bin/
-          cd $GITHUB_WORKSPACE/dist/
+          cd redis-${{ env.RELEASE_VERSION }} && make -i PREFIX=$workspace/dist install
+          cp $workspace/README.md $workspace/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf $workspace/dist/bin/
+          cd $workspace/dist/
           mv bin Redis-${{ env.RELEASE_VERSION }}-Windows-x64
-          tar -cvzf $GITHUB_WORKSPACE/Redis-${{ env.RELEASE_VERSION }}-Windows-x64.tar.gz Redis-${{ env.RELEASE_VERSION }}-Windows-x64/*
-          cp $GITHUB_WORKSPACE/publish/* Redis-${{ inputs.tag_name }}-Windows-x64/
-          mv Redis-${{ inputs.tag_name }}-Windows-x64 Redis-${{ inputs.tag_name }}-Windows-x64-with-Service
-          tar -cvzf $GITHUB_WORKSPACE/Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-with-Service/*
+          tar -cvzf $workspace/Redis-${{ env.RELEASE_VERSION }}-Windows-x64.tar.gz Redis-${{ env.RELEASE_VERSION }}-Windows-x64/*
+          cp $workspace/publish/* Redis-${{ env.RELEASE_VERSION }}-Windows-x64/
+          mv Redis-${{ env.RELEASE_VERSION }}-Windows-x64 Redis-${{ env.RELEASE_VERSION }}-Windows-x64-with-Service
+          tar -cvzf $workspace/Redis-${{ env.RELEASE_VERSION }}-Windows-x64-with-Service.tar.gz Redis-${{ env.RELEASE_VERSION }}-Windows-x64-with-Service/*
 
       - name: Update
         if: ${{ success() }}
