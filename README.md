@@ -14,7 +14,7 @@ The production environment is recommended to run in the way of installing system
 It will start automatically every time you start
 Need to run as administrator
 ```shell
-sc.exe create Redis binpath= 'C:\Software\Redis\RedisService.exe' start= auto
+sc.exe create Redis binpath=C:\Software\Redis\RedisService.exe start= auto
 ```
 Start service
 ```shell
