@@ -31,6 +31,7 @@ jobs:
         shell: pwsh
 
       - name: Setup dotnet
+        if: ${{ success() }}
         uses: actions/setup-dotnet@v3
       - run: |
           dotnet publish -c Release -r win-x64 --sc
@@ -54,7 +55,8 @@ jobs:
           mv Redis-${{ inputs.tag_name }}-Windows-x64 Redis-${{ inputs.tag_name }}-Windows-x64-with-Service
           tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-with-Service/*
 
-      - name: Calculate the hash value 
+      - name: Calculate the hash value
+        if: ${{ success() }}
         run: |
           'Hashes' | Out-File -Append .\redis_latest_body.txt
           '=========' | Out-File -Append .\redis_latest_body.txt
