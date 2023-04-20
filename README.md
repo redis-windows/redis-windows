@@ -3,6 +3,7 @@
 ### Based on Github's powerful Actions automatic construction capabilities, Redis for Windows version is compiled for us in real time
 
 The whole compilation process is completely open and transparent. The compilation script is located in the [.github/workflows/](https://github.com/redis-windows/redis-windows/tree/main/.github/workflows) directory of the project. The compilation log can be viewed in [Actions](https://github.com/redis-windows/redis-windows/actions). In addition, after the compilation is completed, Added hash calculation, the hash value will be printed in the compilation log, which cannot be modified, and will also be written in releases. You can check whether the hash is consistent with the log and releases pages after downloading.
+This project is absolutely pure and selfless, and can stand the scrutiny of everyone. If you have good ideas, you are also welcome to communicate.
 
 
 ### Three operation modes are provided
