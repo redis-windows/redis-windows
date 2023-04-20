@@ -1,3 +1,5 @@
+### [English](https://github.com/redis-windows/redis-windows/blob/main/README.md) | [简体中文](https://github.com/redis-windows/redis-windows/blob/main/README.zh_CN.md)
+
 # Redis for Windows
 
 ### Based on Github's powerful Actions automatic construction capabilities, Redis for Windows version is compiled for us in real time
