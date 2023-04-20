@@ -1,3 +1,5 @@
+### [English](https://github.com/redis-windows/redis-windows/blob/main/README.md) | [简体中文](https://github.com/redis-windows/redis-windows/blob/main/README.zh_CN.md)
+
 # Redis Windows版本
 
 ### 借助GitHub Actions强大的自动化构建能力，为我们实时编译适用于Windows系统的Redis最新版本
