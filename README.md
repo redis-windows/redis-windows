@@ -1,35 +1,27 @@
 ### [English](https://github.com/redis-windows/redis-windows/blob/main/README.md) | [简体中文](https://github.com/redis-windows/redis-windows/blob/main/README.zh_CN.md)
 
-# Redis for Windows
+# Redis Windows Version
+### With the powerful automated building capability of GitHub Actions, we can compile the latest version of Redis for Windows system in real-time. 
+The entire compilation process is completely transparent and open, with the compilation script located in the [.github/workflows/](https://github.com/redis-windows/redis-windows/tree/main/.github/workflows) directory and the compilation logs available on the [Actions](https://github.com/redis-windows/redis-windows/actions) page. In addition, we have added a hash calculation step when the compilation is completed, and the result is printed in the log. This is unmodifiable and recorded in the release page. You can verify the hash value of the downloaded file against the log and release page.  
+Our project is absolutely pure and without any hidden features, and can withstand the scrutiny of all experts. If you have any good ideas, please feel free to communicate with us.  
 
-### Based on Github's powerful Actions automatic construction capabilities, Redis for Windows version is compiled for us in real time
+## We provide three operation modes: 
+1. Run the start.bat script in the project to start directly with one click.
+2. Use the command line.
+3. Support running as a system service.
 
-The whole compilation process is completely open and transparent. The compilation script is located in the [.github/workflows/](https://github.com/redis-windows/redis-windows/tree/main/.github/workflows) directory of the project. The compilation log can be viewed in [Actions](https://github.com/redis-windows/redis-windows/actions). In addition, after the compilation is completed, Added hash calculation, the hash value will be printed in the compilation log, which cannot be modified, and will also be written in releases. You can check whether the hash is consistent with the log and releases pages after downloading.
-This project is absolutely pure and selfless, and can stand the scrutiny of everyone. If you have good ideas, you are also welcome to communicate.
-
-
-### Three operation modes are provided
-
-It is recommended to use start.bat for the development environment
-
-Or run from the command line
-
-It can be run as a system service
-
-
-## Command line startup
-cmd start
+### Command line startup:
+cmd startup: 
 ```shell
 redis-server.exe redis.conf
 ```
-powershell start
+powershell startup: 
 ```shell
 ./redis-server.exe redis.conf
 ```
 
-## Installation Services
-It will start automatically every time you start
-Need to run as administrator
+### Service installation:
+Can achieve automatic startup on boot. Please run it as an administrator and change RedisService.exe to the actual directory where it is stored.
 ```shell
 sc.exe create Redis binpath=C:\Software\Redis\RedisService.exe start= auto
 ```
@@ -51,7 +43,8 @@ sc.exe delete Redis
 
 Project Home: https://github.com/redis-windows/redis-windows
 
-express gratitude: https://www.zhihu.com/question/424272611/answer/2611312760
+Acknowledgement: https://www.zhihu.com/question/424272611/answer/2611312760
 
-### disclaimer
-It is recommended to use it in the development process of the local machine. Please deploy it on Linux in the production environment. This project does not bear any responsibility for any losses caused to you!
+
+## Disclaimer
+We suggest that you use it for local development and follow Redis official guidance to deploy it on Linux for production environment. This project doesn't bear any responsibility for any losses caused by using it and is only for learning and exchange purposes.
