@@ -43,7 +43,9 @@ sc.exe delete Redis
 
 Project Home: https://github.com/redis-windows/redis-windows
 
-Acknowledgement: https://www.zhihu.com/question/424272611/answer/2611312760
+## Acknowledgement: 
+[![NetEngine](https://avatars.githubusercontent.com/u/36178221?s=180&v=4)](https://www.zhihu.com/question/424272611/answer/2611312760) 
+[![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)](https://www.jetbrains.com/?from=redis-windows)
 
 
 ## Disclaimer
