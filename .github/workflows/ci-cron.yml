@@ -63,10 +63,10 @@ jobs:
         run: |
           'Hashes' | Out-File -Append .\redis_latest_body.txt
           '=========' | Out-File -Append .\redis_latest_body.txt
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz | Format-List
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz | Format-List
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
+          Get-FileHash .\Redis-${{ env.RELEASE_VERSION }}-Windows-x64.tar.gz | Format-List
+          Get-FileHash .\Redis-${{ env.RELEASE_VERSION }}-Windows-x64.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
+          Get-FileHash .\Redis-${{ env.RELEASE_VERSION }}-Windows-x64-with-Service.tar.gz | Format-List
+          Get-FileHash .\Redis-${{ env.RELEASE_VERSION }}-Windows-x64-with-Service.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
         shell: pwsh
 
       - name: Add from workflow
