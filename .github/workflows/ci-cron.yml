@@ -49,7 +49,7 @@ jobs:
         run: |
           workspace=$(pwd)
           sed -i 's/__GNU_VISIBLE/1/' /d/a/_temp/msys64/usr/include/dlfcn.h
-          cd redis-${{ env.RELEASE_VERSION }} && make -i PREFIX=$workspace/dist install
+          cd redis-${{ env.RELEASE_VERSION }} && make -i PREFIX=$workspace/dist install BUILD_TLS=yes
           cp $workspace/README.md $workspace/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf $workspace/dist/bin/
           cd $workspace/dist/
           mv bin Redis-${{ env.RELEASE_VERSION }}-Windows-x64
