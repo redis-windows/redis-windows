@@ -1,8 +1,8 @@
 name: Cron Build Redis
 
-on:
-  schedule:
-    - cron:  '0 1 * * *'
+#on:
+#  schedule:
+#    - cron:  '0 1 * * *'
 
 jobs:
   build:
@@ -43,14 +43,14 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           update: true
-          install: gcc make pkg-config mingw-w64-x86_64-python
+          install: gcc make pkg-config mingw-w64-x86_64-python libopenssl openssl-devel
       - name: Build Redis
         if: ${{ success() }}
         run: |
           workspace=$(pwd)
           sed -i 's/__GNU_VISIBLE/1/' /d/a/_temp/msys64/usr/include/dlfcn.h
-          cd redis-${{ env.RELEASE_VERSION }} && make -i PREFIX=$workspace/dist install
-          cp $workspace/README.md $workspace/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll redis.conf sentinel.conf $workspace/dist/bin/
+          cd redis-${{ env.RELEASE_VERSION }} && make -i PREFIX=$workspace/dist install BUILD_TLS=yes
+          cp $workspace/README.md $workspace/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll /d/a/_temp/msys64/usr/bin/msys-crypto-3.dll /d/a/_temp/msys64/usr/bin/msys-ssl-3.dll redis.conf sentinel.conf $workspace/dist/bin/
           cd $workspace/dist/
           mv bin Redis-${{ env.RELEASE_VERSION }}-Windows-x64
           tar -cvzf $workspace/Redis-${{ env.RELEASE_VERSION }}-Windows-x64.tar.gz Redis-${{ env.RELEASE_VERSION }}-Windows-x64/*
