@@ -40,7 +40,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           update: true
-          install: gcc make pkg-config mingw-w64-x86_64-python libopenssl openssl-devel
+          install: gcc make pkg-config mingw-w64-x86_64-python libopenssl openssl-devel mingw-w64-x86_64-libc++
       - name: Build Redis
         if: ${{ success() }}
         run: |
