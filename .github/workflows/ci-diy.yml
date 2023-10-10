@@ -6,7 +6,7 @@ on:
       tag_name:
         description: 'version to build'
         required: true
-        default: "6.2.13"
+        default: "7.2.1"
         type: string
       latest:
         description: 'Indicator of whether or not is a prerelease'
