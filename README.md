@@ -49,11 +49,8 @@ sc.exe delete Redis
 ![image](https://user-images.githubusercontent.com/515784/215540157-65f55297-cde2-49b3-8ab3-14dca7e11ee0.png)
 
 
-项目主页: https://github.com/redis-windows/redis-windows
+项目主页: https://github.com/wondersec/redis-windows
 
-### 鸣谢
-[![NetEngine](https://avatars.githubusercontent.com/u/36178221?s=180&v=4)](https://www.zhihu.com/question/424272611/answer/2611312760) 
-[![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)](https://www.jetbrains.com/?from=redis-windows)
 
 ### 免责声明
 建议您在本地开发环节使用，生产环境请按照Redis官方指导，在Linux中部署。本项目不承担由此给您带来的任何损失，仅供学习交流。
