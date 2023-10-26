@@ -4,7 +4,7 @@
 
 ### 借助GitHub Actions强大的自动化构建能力，为我们实时编译适用于Windows系统的Redis最新版本
 
-整个编译过程完全公开透明， 编译脚本在[.github/workflows/](https://github.com/redis-windows/redis-windows/tree/main/.github/workflows) 目录中，编译日志可在 [Actions](https://github.com/redis-windows/redis-windows/actions)页面查看。此外，我们在编译结束，新增了哈希值计算环节，计算结果打印在日志中，这是任何人不可修改的，并写入发布页面。您可以核对下载到本地的文件的哈希值，是否与日志和发布页面的一致。本项目绝对纯洁无私货，经得起各位大佬审查。如您有好的想法，也欢迎交流。
+整个编译过程完全公开透明， 编译脚本在[.github/workflows/](https://github.com/wondersec/redis-windows/tree/main/.github/workflows) 目录中，编译日志可在 [Actions](https://github.com/redis-windows/redis-windows/actions)页面查看。此外，我们在编译结束，新增了哈希值计算环节，计算结果打印在日志中，这是任何人不可修改的，并写入发布页面。您可以核对下载到本地的文件的哈希值，是否与日志和发布页面的一致。本项目绝对纯洁无私货，经得起各位大佬审查。如您有好的想法，也欢迎交流。
 
 
 ### 提供三种运行模式
