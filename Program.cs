@@ -21,11 +21,11 @@ namespace RedisService
 
         protected override void OnStart(string[] args)
         {
-            var basePath = Path.Combine(AppContext.BaseDirectory).Replace("\\", "/");
+            var basePath = Path.Combine(AppContext.BaseDirectory);
             var diskSymbol = basePath[..basePath.IndexOf(":")];
             var confPath = basePath.Replace(diskSymbol + ":", "/cygdrive/" + diskSymbol);
 
-            ProcessStartInfo processStartInfo = new(basePath + "redis-server.exe", confPath + "redis.conf");
+            ProcessStartInfo processStartInfo = new(Path.Combine(basePath, "redis-server.exe").Replace("\\", "/"), String.Format("\"{0}\"", Path.Combine(confPath, "redis.conf").Replace("\\", "/")));
             processStartInfo.WorkingDirectory = basePath;
             process = Process.Start(processStartInfo);
         }
