@@ -57,6 +57,29 @@ jobs:
           mv Redis-${{ inputs.tag_name }}-Windows-x64 Redis-${{ inputs.tag_name }}-Windows-x64-with-Service
           tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-with-Service/*
 
+      - uses: cygwin/cygwin-install-action@master
+        with:
+          packages: make gcc-core pkg-config libssl-devel         
+      - name: Build Redis cygwin
+        env:
+          CYGWIN_NOWINPATH: 1
+        if: ${{ success() }}
+        run: >-
+          workspace=$(pwd) ;
+          sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h ;
+          rm -rf redis-${{ inputs.tag_name }} && tar -xvf redis-${{ inputs.tag_name }}.tar.gz ;
+          cd redis-${{ inputs.tag_name }}/src && ./mkreleasehdr.sh && cd .. ;
+          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" PREFIX=$workspace/dist-cygwin install ;
+          cp $workspace/README.md $workspace/start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll redis.conf sentinel.conf $workspace/dist-cygwin/bin/ ;
+          cd $workspace/dist-cygwin/ ;
+          sed -i 's/pidfile \/var\/run/pidfile ./' bin/redis.conf ;
+          mv bin Redis-${{ inputs.tag_name }}-Windows-x64-cygwin ;
+          tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64-cygwin.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-cygwin/* ;
+          cp $workspace/publish/* Redis-${{ inputs.tag_name }}-Windows-x64-cygwin/ ;
+          mv Redis-${{ inputs.tag_name }}-Windows-x64-cygwin Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service ;
+          tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service/*
+        shell: bash
+
       - name: Calculate the hash value
         if: ${{ success() }}
         run: |
@@ -66,6 +89,10 @@ jobs:
           Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
           Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz | Format-List
           Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
+          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-cygwin.tar.gz | Format-List
+          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-cygwin.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
+          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service.tar.gz | Format-List
+          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
         shell: pwsh
 
       - name: Add from workflow
@@ -86,3 +113,5 @@ jobs:
           files: |
             Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz
             Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz
+            Redis-${{ inputs.tag_name }}-Windows-x64-cygwin.tar.gz
+            Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service.tar.gz
