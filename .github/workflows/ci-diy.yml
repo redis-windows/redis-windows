@@ -50,6 +50,7 @@ jobs:
           make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" PREFIX=$workspace/dist install
           cp $workspace/README.md $workspace/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll /d/a/_temp/msys64/usr/bin/msys-crypto-3.dll /d/a/_temp/msys64/usr/bin/msys-ssl-3.dll redis.conf sentinel.conf $workspace/dist/bin/
           cd $workspace/dist/
+          sed -i 's/pidfile \/var\/run/pidfile ./' bin/redis.conf
           mv bin Redis-${{ inputs.tag_name }}-Windows-x64
           tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64/*
           cp $workspace/publish/* Redis-${{ inputs.tag_name }}-Windows-x64/
