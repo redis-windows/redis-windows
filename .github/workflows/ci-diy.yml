@@ -32,7 +32,7 @@ jobs:
 
       - name: Setup dotnet
         if: ${{ success() }}
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
       - run: |
           dotnet publish -c Release -r win-x64 --sc
         shell: pwsh
@@ -76,7 +76,7 @@ jobs:
         
       - name: Release
         if: ${{ success() }}
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.ACTION_TOKEN }}
           name: Redis ${{ inputs.tag_name }} for Windows
