@@ -4,102 +4,124 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'version to build'
+        description: 'Version'
         required: true
         default: "6.2.13"
         type: string
-      latest:
-        description: 'Indicator of whether or not is a prerelease'
-        required: true
+      make_latest:
+        description: 'Latest'
+        default: false
         type: boolean
-
+        
 jobs:
   build:
     runs-on: windows-latest
-
-    defaults:
-      run:
-        shell: msys2 {0}
+    env:
+      REDIS_DIST: Redis-${{ inputs.tag_name }}-Windows-x64
 
     steps:
       - uses: actions/checkout@v4
-      - name: Version
+      - name: Download source code
         run: |
           (ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'Bearer ${{ secrets.ACTION_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/tags/${{ inputs.tag_name }}").Content).body -Replace '\(\#', '(https://github.com/redis/redis/pull/' | Set-Content .\redis_latest_body.txt
           Invoke-WebRequest -Uri https://github.com/redis/redis/archive/refs/tags/${{ inputs.tag_name }}.tar.gz -OutFile redis-${{ inputs.tag_name }}.tar.gz
-          tar -xvf redis-${{ inputs.tag_name }}.tar.gz
-        shell: pwsh
+          tar -xzf redis-${{ inputs.tag_name }}.tar.gz
 
       - name: Setup dotnet
         if: ${{ success() }}
         uses: actions/setup-dotnet@v4
       - run: |
           dotnet publish -c Release -r win-x64 --sc
-        shell: pwsh
 
       - uses: msys2/setup-msys2@v2
         with:
           update: true
-          install: gcc make pkg-config mingw-w64-x86_64-python libopenssl openssl-devel mingw-w64-x86_64-libc++
-      - name: Build Redis
+          install: gcc make pkg-config libopenssl openssl-devel zip
+      - name: msys2 Build Redis
         if: ${{ success() }}
         run: |
           workspace=$(pwd)
-          sed -i 's/__GNU_VISIBLE/1/' /d/a/_temp/msys64/usr/include/dlfcn.h
-          cd redis-${{ inputs.tag_name }}/src && ./mkreleasehdr.sh && cd ..
-          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" PREFIX=$workspace/dist install
-          cp $workspace/README.md $workspace/start.bat /d/a/_temp/msys64/usr/bin/msys-2.0.dll /d/a/_temp/msys64/usr/bin/msys-crypto-3.dll /d/a/_temp/msys64/usr/bin/msys-ssl-3.dll redis.conf sentinel.conf $workspace/dist/bin/
-          cd $workspace/dist/
-          sed -i 's/pidfile \/var\/run/pidfile ./' bin/redis.conf
-          mv bin Redis-${{ inputs.tag_name }}-Windows-x64
-          tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64/*
-          cp $workspace/publish/* Redis-${{ inputs.tag_name }}-Windows-x64/
-          mv Redis-${{ inputs.tag_name }}-Windows-x64 Redis-${{ inputs.tag_name }}-Windows-x64-with-Service
-          tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-with-Service/*
+          mkdir ${{ env.REDIS_DIST }}-msys2
+          sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
+          cd redis-${{ inputs.tag_name }}/src && ./mkreleasehdr.sh
+          sed -i 's/\\n\"\;/\"/' asciilogo.h
+          echo '" Redis for Windows Project Home \n"' >> asciilogo.h
+          echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h
+          cd ..
+          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0"
+          find . -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "$workspace/${{ env.REDIS_DIST }}-msys2" \;
+          cd $workspace
+          cp README.md start.bat /usr/bin/msys-2.0.dll /usr/bin/msys-crypto-3.dll /usr/bin/msys-ssl-3.dll ${{ env.REDIS_DIST }}-msys2
+          sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          zip -q -r ${{ env.REDIS_DIST }}-msys2.zip ${{ env.REDIS_DIST }}-msys2
+          cp publish/* ${{ env.REDIS_DIST }}-msys2/
+          mv ${{ env.REDIS_DIST }}-msys2 ${{ env.REDIS_DIST }}-msys2-with-Service
+          zip -q -r ${{ env.REDIS_DIST }}-msys2-with-Service.zip ${{ env.REDIS_DIST }}-msys2-with-Service
+        shell: msys2 {0}
+
+      - name: Verify msys2 version
+        if: ${{ success() }}
+        run: |
+          If ( -not ( (./${{ env.REDIS_DIST }}-msys2-with-Service/redis-server.exe --version ) -match "${{ inputs.tag_name }}" ) ) { 
+            Write-Output "msys2 verification failed"
+            exit 1
+          }
 
       - uses: cygwin/cygwin-install-action@master
         with:
-          packages: make gcc-core pkg-config libssl-devel         
-      - name: Build Redis cygwin
+          packages: make gcc-core pkg-config libssl-devel zip
+      - name: cygwin Build Redis
         env:
           CYGWIN_NOWINPATH: 1
         if: ${{ success() }}
         run: >-
           workspace=$(pwd) ;
+          mkdir ${{ env.REDIS_DIST }}-cygwin ;
           sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h ;
-          rm -rf redis-${{ inputs.tag_name }} && tar -xvf redis-${{ inputs.tag_name }}.tar.gz ;
-          cd redis-${{ inputs.tag_name }}/src && ./mkreleasehdr.sh && cd .. ;
-          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" PREFIX=$workspace/dist-cygwin install ;
-          cp $workspace/README.md $workspace/start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll redis.conf sentinel.conf $workspace/dist-cygwin/bin/ ;
-          cd $workspace/dist-cygwin/ ;
-          sed -i 's/pidfile \/var\/run/pidfile ./' bin/redis.conf ;
-          mv bin Redis-${{ inputs.tag_name }}-Windows-x64-cygwin ;
-          tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64-cygwin.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-cygwin/* ;
-          cp $workspace/publish/* Redis-${{ inputs.tag_name }}-Windows-x64-cygwin/ ;
-          mv Redis-${{ inputs.tag_name }}-Windows-x64-cygwin Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service ;
-          tar -cvzf $workspace/Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service.tar.gz Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service/*
+          rm -rf redis-${{ inputs.tag_name }} && tar -xzf redis-${{ inputs.tag_name }}.tar.gz ;
+          cd redis-${{ inputs.tag_name }}/src && ./mkreleasehdr.sh ;
+          sed -i 's/\\n\"\;/\"/' asciilogo.h ;
+          echo '" Redis for Windows Project Home \n"' >> asciilogo.h ;
+          echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
+          cd .. ;
+          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" ;
+          find . -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "$workspace/${{ env.REDIS_DIST }}-cygwin" \; ;
+          cd $workspace ;
+          cp README.md start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll ${{ env.REDIS_DIST }}-cygwin ;
+          sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.REDIS_DIST }}-cygwin/redis.conf ;
+          zip -q -r ${{ env.REDIS_DIST }}-cygwin.zip ${{ env.REDIS_DIST }}-cygwin ;
+          cp publish/* ${{ env.REDIS_DIST }}-cygwin/ ;
+          mv ${{ env.REDIS_DIST }}-cygwin ${{ env.REDIS_DIST }}-cygwin-with-Service ;
+          zip -q -r ${{ env.REDIS_DIST }}-cygwin-with-Service.zip ${{ env.REDIS_DIST }}-cygwin-with-Service
         shell: bash
+
+      - name: Verify cygwin version
+        if: ${{ success() }}
+        run: |
+          If ( -not ( (./${{ env.REDIS_DIST }}-cygwin-with-Service/redis-server.exe --version ) -match "${{ inputs.tag_name }}" ) ) { 
+            Write-Output "cygwin verification failed"
+            exit 1
+          }
 
       - name: Calculate the hash value
         if: ${{ success() }}
         run: |
           'Hashes' | Out-File -Append .\redis_latest_body.txt
           '=========' | Out-File -Append .\redis_latest_body.txt
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz | Format-List
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz | Format-List
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-cygwin.tar.gz | Format-List
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-cygwin.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service.tar.gz | Format-List
-          Get-FileHash .\Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service.tar.gz | Format-List | Out-File -Append .\redis_latest_body.txt
-        shell: pwsh
+          Get-FileHash .\${{ env.REDIS_DIST }}-msys2.zip | Format-List
+          Get-FileHash .\${{ env.REDIS_DIST }}-msys2.zip | Format-List | Out-File -Append .\redis_latest_body.txt
+          Get-FileHash .\${{ env.REDIS_DIST }}-msys2-with-Service.zip | Format-List
+          Get-FileHash .\${{ env.REDIS_DIST }}-msys2-with-Service.zip | Format-List | Out-File -Append .\redis_latest_body.txt
+          
+          Get-FileHash .\${{ env.REDIS_DIST }}-cygwin.zip | Format-List
+          Get-FileHash .\${{ env.REDIS_DIST }}-cygwin.zip | Format-List | Out-File -Append .\redis_latest_body.txt
+          Get-FileHash .\${{ env.REDIS_DIST }}-cygwin-with-Service.zip | Format-List
+          Get-FileHash .\${{ env.REDIS_DIST }}-cygwin-with-Service.zip | Format-List | Out-File -Append .\redis_latest_body.txt
 
       - name: Add from workflow
         if: ${{ success() }}
         run: |
           "From workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" | Out-File -Append .\redis_latest_body.txt
-        shell: pwsh
         
       - name: Release
         if: ${{ success() }}
@@ -109,9 +131,9 @@ jobs:
           name: Redis ${{ inputs.tag_name }} for Windows
           tag_name: ${{ inputs.tag_name }}
           body_path: redis_latest_body.txt
-          prerelease: ${{ inputs.latest }}
+          make_latest: ${{ inputs.make_latest }}
           files: |
-            Redis-${{ inputs.tag_name }}-Windows-x64.tar.gz
-            Redis-${{ inputs.tag_name }}-Windows-x64-with-Service.tar.gz
-            Redis-${{ inputs.tag_name }}-Windows-x64-cygwin.tar.gz
-            Redis-${{ inputs.tag_name }}-Windows-x64-cygwin-with-Service.tar.gz
+            ${{ env.REDIS_DIST }}-cygwin.zip
+            ${{ env.REDIS_DIST }}-cygwin-with-Service.zip
+            ${{ env.REDIS_DIST }}-msys2.zip
+            ${{ env.REDIS_DIST }}-msys2-with-Service.zip
