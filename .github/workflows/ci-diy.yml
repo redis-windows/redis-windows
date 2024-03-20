@@ -44,7 +44,7 @@ jobs:
           mkdir ${{ env.REDIS_DIST }}-msys2
           sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
           cd redis-${{ inputs.tag_name }}/src && ./mkreleasehdr.sh
-          sed -i 's/\\n\"\;/\"/' asciilogo.h
+          sed -i 's/\"\;/\"/' asciilogo.h
           echo '" Redis for Windows Project Home \n"' >> asciilogo.h
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h
           cd ..
@@ -80,7 +80,7 @@ jobs:
           sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h ;
           rm -rf redis-${{ inputs.tag_name }} && tar -xzf redis-${{ inputs.tag_name }}.tar.gz ;
           cd redis-${{ inputs.tag_name }}/src && ./mkreleasehdr.sh ;
-          sed -i 's/\\n\"\;/\"/' asciilogo.h ;
+          sed -i 's/\"\;/\"/' asciilogo.h ;
           echo '" Redis for Windows Project Home \n"' >> asciilogo.h ;
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
           cd .. ;
