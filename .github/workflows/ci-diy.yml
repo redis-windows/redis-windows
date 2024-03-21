@@ -16,8 +16,6 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    env:
-      REDIS_DIST: Redis-${{ inputs.tag_name }}-Windows-x64
 
     steps:
       - uses: actions/checkout@v4
@@ -25,13 +23,15 @@ jobs:
         run: |
           (ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'Bearer ${{ secrets.ACTION_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/tags/${{ inputs.tag_name }}").Content).body -Replace '\(\#', '(https://github.com/redis/redis/pull/' | Set-Content .\redis_latest_body.txt
           Invoke-WebRequest -Uri https://github.com/redis/redis/archive/refs/tags/${{ inputs.tag_name }}.tar.gz -OutFile redis-${{ inputs.tag_name }}.tar.gz
-          tar -xzf redis-${{ inputs.tag_name }}.tar.gz
+          Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=${{ inputs.tag_name }}"
+          Add-Content -Path $env:GITHUB_ENV -Value "REDIS_DIST=Redis-${{ inputs.tag_name }}-Windows-x64"
 
       - name: Setup dotnet
         if: ${{ success() }}
         uses: actions/setup-dotnet@v4
       - run: |
           dotnet publish -c Release -r win-x64 --sc
+
 
       - uses: msys2/setup-msys2@v2
         with:
@@ -43,7 +43,8 @@ jobs:
           workspace=$(pwd)
           mkdir ${{ env.REDIS_DIST }}-msys2
           sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
-          cd redis-${{ inputs.tag_name }}/src && ./mkreleasehdr.sh
+          tar -xzf redis-${{ env.RELEASE_VERSION }}.tar.gz
+          cd redis-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh
           sed -i 's/\"\;/\"/' asciilogo.h
           echo '" Redis for Windows Project Home \n"' >> asciilogo.h
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h
@@ -62,7 +63,7 @@ jobs:
       - name: Verify msys2 version
         if: ${{ success() }}
         run: |
-          If ( -not ( (./${{ env.REDIS_DIST }}-msys2-with-Service/redis-server.exe --version ) -match "${{ inputs.tag_name }}" ) ) { 
+          If ( -not ( (./${{ env.REDIS_DIST }}-msys2-with-Service/redis-server.exe --version ) -match "${{ env.RELEASE_VERSION }}" ) ) { 
             Write-Output "msys2 verification failed"
             exit 1
           }
@@ -78,8 +79,8 @@ jobs:
           workspace=$(pwd) ;
           mkdir ${{ env.REDIS_DIST }}-cygwin ;
           sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h ;
-          rm -rf redis-${{ inputs.tag_name }} && tar -xzf redis-${{ inputs.tag_name }}.tar.gz ;
-          cd redis-${{ inputs.tag_name }}/src && ./mkreleasehdr.sh ;
+          rm -rf redis-${{ env.RELEASE_VERSION }} && tar -xzf redis-${{ env.RELEASE_VERSION }}.tar.gz ;
+          cd redis-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh ;
           sed -i 's/\"\;/\"/' asciilogo.h ;
           echo '" Redis for Windows Project Home \n"' >> asciilogo.h ;
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
@@ -98,7 +99,7 @@ jobs:
       - name: Verify cygwin version
         if: ${{ success() }}
         run: |
-          If ( -not ( (./${{ env.REDIS_DIST }}-cygwin-with-Service/redis-server.exe --version ) -match "${{ inputs.tag_name }}" ) ) { 
+          If ( -not ( (./${{ env.REDIS_DIST }}-cygwin-with-Service/redis-server.exe --version ) -match "${{ env.RELEASE_VERSION }}" ) ) { 
             Write-Output "cygwin verification failed"
             exit 1
           }
@@ -128,8 +129,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.ACTION_TOKEN }}
-          name: Redis ${{ inputs.tag_name }} for Windows
-          tag_name: ${{ inputs.tag_name }}
+          name: Redis ${{ env.RELEASE_VERSION }} for Windows
+          tag_name: ${{ env.RELEASE_VERSION }}
           body_path: redis_latest_body.txt
           make_latest: ${{ inputs.make_latest }}
           files: |
