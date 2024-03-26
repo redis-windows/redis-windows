@@ -1,43 +1,59 @@
-//author: https://www.zhihu.com/question/424272611/answer/2611312760
-
 using System.Diagnostics;
-using System.ServiceProcess;
 
 namespace RedisService
 {
     class Program
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:验证平台兼容性", Justification = "<挂起>")]
-        static void Main()
+        static void Main(string[] args)
         {
-            ServiceBase.Run(new RedisService());
+            var builder = Host.CreateApplicationBuilder(args);
+            builder.Services.AddWindowsService();
+            builder.Services.AddHostedService<RedisService>();
+
+            var host = builder.Build();
+            host.Run();
         }
     }
 
-    partial class RedisService : ServiceBase
+    class RedisService : BackgroundService
     {
-
-        private Process? process = new();
-
-        protected override void OnStart(string[] args)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var basePath = Path.Combine(AppContext.BaseDirectory);
-            var diskSymbol = basePath[..basePath.IndexOf(":")];
-            var confPath = basePath.Replace(diskSymbol + ":", "/cygdrive/" + diskSymbol);
+            Process? process = null;
 
-            ProcessStartInfo processStartInfo = new(Path.Combine(basePath, "redis-server.exe").Replace("\\", "/"), String.Format("\"{0}\"", Path.Combine(confPath, "redis.conf").Replace("\\", "/")));
-            processStartInfo.WorkingDirectory = basePath;
-            process = Process.Start(processStartInfo);
-        }
-
-        protected override void OnStop()
-        {
-            if (process != null)
+            try
             {
-                process.Kill();
-                process.Dispose();
+                if (!stoppingToken.IsCancellationRequested)
+                {
+                    var basePath = Path.Combine(AppContext.BaseDirectory);
+                    var diskSymbol = basePath[..basePath.IndexOf(":")];
+                    var confPath = basePath.Replace(diskSymbol + ":", "/cygdrive/" + diskSymbol);
+
+                    var processStartInfo = new ProcessStartInfo(Path.Combine(basePath, "redis-server.exe").Replace("\\", "/"), String.Format("\"{0}\"", Path.Combine(confPath, "redis.conf").Replace("\\", "/")))
+                    {
+                        WorkingDirectory = basePath
+                    };
+
+                    process = Process.Start(processStartInfo);
+                    if (process != null)
+                    {
+                        await process.WaitForExitAsync(stoppingToken);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // When the stopping token is canceled, for example, a call made from services.msc,
+                // we shouldn't exit with a non-zero exit code. In other words, this is expected...
+            }
+            finally
+            {
+                if (process != null)
+                {
+                    process.Kill();
+                    process.Dispose();
+                }
             }
         }
     }
-
 }
