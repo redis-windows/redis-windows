@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download source code
         run: |
-          (ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'Bearer ${{ secrets.ACTION_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/tags/${{ inputs.tag_name }}").Content).body -Replace '\(\#', '(https://github.com/redis/redis/pull/' | Set-Content .\redis_latest_body.txt
+          (ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'Bearer ${{ secrets.GITHUB_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/tags/${{ inputs.tag_name }}").Content).body -Replace '\(\#', '(https://github.com/redis/redis/pull/' | Set-Content .\redis_latest_body.txt
           Invoke-WebRequest -Uri https://github.com/redis/redis/archive/refs/tags/${{ inputs.tag_name }}.tar.gz -OutFile redis-${{ inputs.tag_name }}.tar.gz
           Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=${{ inputs.tag_name }}"
           Add-Content -Path $env:GITHUB_ENV -Value "REDIS_DIST=Redis-${{ inputs.tag_name }}-Windows-x64"
@@ -128,7 +128,7 @@ jobs:
         if: ${{ success() }}
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.ACTION_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           name: Redis ${{ env.RELEASE_VERSION }} for Windows
           tag_name: ${{ env.RELEASE_VERSION }}
           body_path: redis_latest_body.txt
