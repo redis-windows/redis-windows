@@ -15,7 +15,7 @@ jobs:
           If ( -not ( Test-Path -Path .github\redis_latest_version.txt )) { 
             Add-Content -Path .github\redis_latest_version.txt -Value "" -NoNewline
           }
-          $res = ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'token ${{ secrets.ACTION_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/latest").Content
+          $res = ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/latest").Content
           If ( $res.tag_name -eq ( Get-Content .github\redis_latest_version.txt )) { 
             Write-Output "No new version"
             exit 1
@@ -136,7 +136,7 @@ jobs:
         if: ${{ success() }}
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.ACTION_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           name: Redis ${{ env.RELEASE_VERSION }} for Windows
           tag_name: ${{ env.RELEASE_VERSION }}
           body_path: redis_latest_body.txt
