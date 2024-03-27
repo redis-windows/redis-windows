@@ -6,54 +6,78 @@ namespace RedisService
     {
         static void Main(string[] args)
         {
-            var builder = Host.CreateApplicationBuilder(args);
-            builder.Services.AddWindowsService();
-            builder.Services.AddHostedService<RedisService>();
+            string configFilePath = "redis.conf";
 
-            var host = builder.Build();
+            if (args.Length > 1 && args[0] == "-c")
+            {
+                configFilePath = args[1];
+            }
+
+            IHost host = Host.CreateDefaultBuilder().UseWindowsService().ConfigureServices((hostContext, services) =>
+            {
+                services.AddHostedService(serviceProvider =>
+                        new RedisService(configFilePath));
+            }).Build();
+
             host.Run();
         }
     }
 
-    class RedisService : BackgroundService
+
+
+    public class RedisService(string configFilePath) : BackgroundService
     {
+
+        private Process? redisProcess = new();
+
+
+        public override Task StartAsync(CancellationToken stoppingToken)
+        {
+
+            var basePath = Path.Combine(AppContext.BaseDirectory);
+
+            if (!Path.IsPathRooted(configFilePath))
+            {
+                configFilePath = Path.Combine(basePath, configFilePath);
+            }
+
+            configFilePath = Path.GetFullPath(configFilePath);
+
+            var diskSymbol = configFilePath[..configFilePath.IndexOf(":")];
+            var fileConf = configFilePath.Replace(diskSymbol + ":", "/cygdrive/" + diskSymbol).Replace("\\", "/");
+
+            string fileName = Path.Combine(basePath, "redis-server.exe").Replace("\\", "/");
+            string arguments = $"\"{fileConf}\"";
+
+            ProcessStartInfo processStartInfo = new(fileName, arguments)
+            {
+                WorkingDirectory = basePath
+            };
+
+            redisProcess = Process.Start(processStartInfo);
+
+            return Task.CompletedTask;
+        }
+
+
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            Process? process = null;
+            await Task.Delay(-1, stoppingToken);
+        }
 
-            try
-            {
-                if (!stoppingToken.IsCancellationRequested)
-                {
-                    var basePath = Path.Combine(AppContext.BaseDirectory);
-                    var diskSymbol = basePath[..basePath.IndexOf(":")];
-                    var confPath = basePath.Replace(diskSymbol + ":", "/cygdrive/" + diskSymbol);
 
-                    var processStartInfo = new ProcessStartInfo(Path.Combine(basePath, "redis-server.exe").Replace("\\", "/"), String.Format("\"{0}\"", Path.Combine(confPath, "redis.conf").Replace("\\", "/")))
-                    {
-                        WorkingDirectory = basePath
-                    };
 
-                    process = Process.Start(processStartInfo);
-                    if (process != null)
-                    {
-                        await process.WaitForExitAsync(stoppingToken);
-                    }
-                }
-            }
-            catch (OperationCanceledException)
+        public override Task StopAsync(CancellationToken stoppingToken)
+        {
+            if (redisProcess != null)
             {
-                // When the stopping token is canceled, for example, a call made from services.msc,
-                // we shouldn't exit with a non-zero exit code. In other words, this is expected...
+                redisProcess.Kill();
+                redisProcess.Dispose();
             }
-            finally
-            {
-                if (process != null)
-                {
-                    process.Kill();
-                    process.Dispose();
-                }
-            }
+
+            return Task.CompletedTask;
         }
     }
+
 }
