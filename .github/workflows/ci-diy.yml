@@ -21,10 +21,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Download source code
         run: |
-          (ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'Bearer ${{ secrets.GITHUB_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/tags/${{ inputs.tag_name }}").Content).body -Replace '\(\#', '(https://github.com/redis/redis/pull/' | Set-Content .\redis_latest_body.txt
-          Invoke-WebRequest -Uri https://github.com/redis/redis/archive/refs/tags/${{ inputs.tag_name }}.tar.gz -OutFile redis-${{ inputs.tag_name }}.tar.gz
-          Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=${{ inputs.tag_name }}"
-          Add-Content -Path $env:GITHUB_ENV -Value "REDIS_DIST=Redis-${{ inputs.tag_name }}-Windows-x64"
+          $tag_name="${{ inputs.tag_name }}"
+          (ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'Bearer ${{ secrets.GITHUB_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/tags/$($tag_name.Trim())").Content).body -Replace '\(\#', '(https://github.com/redis/redis/pull/' | Set-Content .\redis_latest_body.txt
+          Invoke-WebRequest -Uri https://github.com/redis/redis/archive/refs/tags/$($tag_name.Trim()).tar.gz -OutFile redis-$($tag_name.Trim()).tar.gz
+          Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$($tag_name.Trim())"
+          Add-Content -Path $env:GITHUB_ENV -Value "REDIS_DIST=Redis-$($tag_name.Trim())-Windows-x64"
 
       - name: Setup dotnet
         if: ${{ success() }}
