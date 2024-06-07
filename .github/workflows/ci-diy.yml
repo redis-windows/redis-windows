@@ -12,6 +12,10 @@ on:
         description: 'Latest'
         default: false
         type: boolean
+      prerelease:
+        description: 'Pre-release'
+        default: false
+        type: boolean
         
 jobs:
   build:
@@ -134,6 +138,7 @@ jobs:
           tag_name: ${{ env.RELEASE_VERSION }}
           body_path: redis_latest_body.txt
           make_latest: ${{ inputs.make_latest }}
+          prerelease: ${{ inputs.prerelease }}
           files: |
             ${{ env.REDIS_DIST }}-cygwin.zip
             ${{ env.REDIS_DIST }}-cygwin-with-Service.zip
