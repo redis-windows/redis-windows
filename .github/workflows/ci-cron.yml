@@ -21,7 +21,7 @@ jobs:
             exit 1
           }
           $res.tag_name | Out-File -FilePath .github\redis_latest_version.txt -NoNewline -Encoding ascii
-          $res.body -Replace '\(\#', '(https://github.com/redis/redis/pull/' | Set-Content .\redis_latest_body.txt
+          $res.body -Replace '\#1', 'https://github.com/redis/redis/pull/1' | Set-Content .\redis_latest_body.txt
           Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$($res.tag_name)"
           Add-Content -Path $env:GITHUB_ENV -Value "REDIS_DIST=Redis-$($res.tag_name)-Windows-x64"
           Invoke-WebRequest -Uri https://github.com/redis/redis/archive/refs/tags/$($res.tag_name).tar.gz -OutFile redis-$($res.tag_name).tar.gz
