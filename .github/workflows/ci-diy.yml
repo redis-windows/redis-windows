@@ -26,7 +26,7 @@ jobs:
       - name: Download source code
         run: |
           $tag_name="${{ inputs.tag_name }}"
-          (ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'Bearer ${{ secrets.GITHUB_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/tags/$($tag_name.Trim())").Content).body -Replace '\#1', '(https://github.com/redis/redis/pull/1' | Set-Content .\redis_latest_body.txt
+          (ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'Bearer ${{ secrets.GITHUB_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/tags/$($tag_name.Trim())").Content).body -Replace '\#1', 'https://github.com/redis/redis/pull/1' | Set-Content .\redis_latest_body.txt
           Invoke-WebRequest -Uri https://github.com/redis/redis/archive/refs/tags/$($tag_name.Trim()).tar.gz -OutFile redis-$($tag_name.Trim()).tar.gz
           Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$($tag_name.Trim())"
           Add-Content -Path $env:GITHUB_ENV -Value "REDIS_DIST=Redis-$($tag_name.Trim())-Windows-x64"
