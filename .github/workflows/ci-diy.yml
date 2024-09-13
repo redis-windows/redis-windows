@@ -68,7 +68,9 @@ jobs:
       - name: Verify msys2 version
         if: ${{ success() }}
         run: |
-          If ( -not ( (./${{ env.REDIS_DIST }}-msys2-with-Service/redis-server.exe --version ) -match "${{ env.RELEASE_VERSION }}" ) ) { 
+          $REDIS_MSYS2_VERSION_INFO=(./${{ env.REDIS_DIST }}-msys2-with-Service/redis-server.exe --version )
+          echo $REDIS_MSYS2_VERSION_INFO
+          If ( -not ( $REDIS_MSYS2_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
             Write-Output "msys2 verification failed"
             exit 1
           }
@@ -104,7 +106,9 @@ jobs:
       - name: Verify cygwin version
         if: ${{ success() }}
         run: |
-          If ( -not ( (./${{ env.REDIS_DIST }}-cygwin-with-Service/redis-server.exe --version ) -match "${{ env.RELEASE_VERSION }}" ) ) { 
+          $REDIS_CYGWIN_VERSION_INFO=(./${{ env.REDIS_DIST }}-cygwin-with-Service/redis-server.exe --version )
+          echo $REDIS_CYGWIN_VERSION_INFO
+          If ( -not ( $REDIS_CYGWIN_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
             Write-Output "cygwin verification failed"
             exit 1
           }
