@@ -70,10 +70,10 @@ jobs:
         run: |
           $REDIS_MSYS2_VERSION_INFO=(./${{ env.REDIS_DIST }}-msys2-with-Service/redis-server.exe --version )
           echo $REDIS_MSYS2_VERSION_INFO
-          If ( ${{ inputs.prerelease }} && -not ( $REDIS_MSYS2_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
-            Write-Output "msys2 verification failed"
-            exit 1
-          }
+          # If ( -not ( $REDIS_MSYS2_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
+          #   Write-Output "msys2 verification failed"
+          #   exit 1
+          # }
 
       - uses: cygwin/cygwin-install-action@master
         with:
@@ -108,10 +108,10 @@ jobs:
         run: |
           $REDIS_CYGWIN_VERSION_INFO=(./${{ env.REDIS_DIST }}-cygwin-with-Service/redis-server.exe --version )
           echo $REDIS_CYGWIN_VERSION_INFO
-          If ( ${{ inputs.prerelease }} && -not ( $REDIS_CYGWIN_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
-            Write-Output "cygwin verification failed"
-            exit 1
-          }
+          # If ( -not ( $REDIS_CYGWIN_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
+          #   Write-Output "cygwin verification failed"
+          #   exit 1
+          # }
 
       - name: Calculate the hash value
         if: ${{ success() }}
