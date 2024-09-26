@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="MyApp" Language="1033" Version="1.0.0.0" Manufacturer="MyCompany" UpgradeCode="05410198-7212-4FC4-B7C8-AFEFC3DA0FBC">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+
+    <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="MyApp">
+          <Component Id="AppComponent" Guid="80867242-05D7-4396-999E-289011A026E8">
+            <File Id="AppExe" Source="bin/app.exe" KeyPath="yes" />
+            <File Id="HelperExe" Source="bin/helper.exe" KeyPath="no" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <Feature Id="MainFeature" Title="MyApp" Level="1">
+      <ComponentRef Id="AppComponent" />
+    </Feature>
+  </Product>
+</Wix>
