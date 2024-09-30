@@ -35,14 +35,14 @@
       </Component>
     </ComponentGroup>
          <ComponentGroup Id="RedisComponents" Directory="INSTALLFOLDER">
-                <Files Include="*.dll" />
-                <Files Include="*.conf" />
-                <File Source="redis-benchmark.exe" />
-                <File Source="redis-check-aof.exe" />
-                <File Source="redis-check-rdb.exe" />
-                <File Source="redis-cli.exe" />
-                <File Source="redis-sentinel.exe" />
-                <File Source="redis-server.exe" />
+                <Files Include="./*.dll" />
+                <Files Include="./*.conf" />
+                <File Source="./redis-benchmark.exe" />
+                <File Source="./redis-check-aof.exe" />
+                <File Source="./redis-check-rdb.exe" />
+                <File Source="./redis-cli.exe" />
+                <File Source="./redis-sentinel.exe" />
+                <File Source="./redis-server.exe" />
          </ComponentGroup>
 
     <Feature Id="Redis">
