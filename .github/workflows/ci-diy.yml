@@ -62,6 +62,8 @@ jobs:
           zip -q -r ${{ env.REDIS_DIST }}-cygwin.zip ${{ env.REDIS_DIST }}-cygwin ;
           cp install_redis_service.bat uninstall_redis_service.bat Redis.wxs publish/* ${{ env.REDIS_DIST }}-cygwin/ ;
           mv ${{ env.REDIS_DIST }}-cygwin ${{ env.REDIS_DIST }}-cygwin-with-Service ;
+          dotnet tool install --global wix
+          wix build ${{ env.REDIS_DIST }}-cygwin-with-Service/Redis.wxs -o $workspace/${{ env.REDIS_DIST }}.msi
           zip -q -r ${{ env.REDIS_DIST }}-cygwin-with-Service.zip ${{ env.REDIS_DIST }}-cygwin-with-Service
         shell: bash
 
@@ -74,11 +76,6 @@ jobs:
           #   Write-Output "cygwin verification failed"
           #   exit 1
           # }
-
-      - name: Create installer
-        run: |
-          dotnet tool install --global wix
-          wix build ${{ env.REDIS_DIST }}-cygwin-with-Service/Redis.wxs -o $workspace/${{ env.REDIS_DIST }}.msi
 
       - name: Calculate the hash value
         if: ${{ success() }}
