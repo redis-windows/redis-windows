@@ -79,7 +79,8 @@ jobs:
         run: |
           dotnet tool install --global wix
           ls -R ./${{ env.REDIS_DIST }}-cygwin-with-Service
-          wix build ./${{ env.REDIS_DIST }}-cygwin-with-Service/Redis.wxs -o $workspace/${{ env.REDIS_DIST }}.msi
+          cd ${{ env.REDIS_DIST }}-cygwin-with-Service
+          wix build Redis.wxs -o $workspace/${{ env.REDIS_DIST }}.msi
 
       - name: Calculate the hash value
         if: ${{ success() }}
