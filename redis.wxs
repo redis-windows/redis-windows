@@ -1,23 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="MyApp" Language="1033" Version="1.0.0.0" Manufacturer="MyCompany" UpgradeCode="05410198-7212-4FC4-B7C8-AFEFC3DA0FBC">
-    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Redis"
+           Manufacturer="Ascensio System SIA"
+           Version="7.4.0"
+           UpgradeCode="05410198-7212-4FC4-B7C8-AFEFC3DA0FBC"
+           Compressed="true"
+           InstallerVersion="200">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
-    <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
+    <MediaTemplate EmbedCab="yes" />
 
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder">
-        <Directory Id="INSTALLFOLDER" Name="MyApp">
-          <Component Id="AppComponent" Guid="80867242-05D7-4396-999E-289011A026E8">
-            <File Id="AppExe" Source="bin/app.exe" KeyPath="yes" />
-            <File Id="HelperExe" Source="bin/helper.exe" KeyPath="no" />
-          </Component>
-        </Directory>
-      </Directory>
-    </Directory>
+          <StandardDirectory Id="ProgramFilesFolder">
+            <Directory Id="INSTALLFOLDER" Name="!(bind.Property.ProductName)" />
+          </StandardDirectory>
 
-    <Feature Id="MainFeature" Title="MyApp" Level="1">
-      <ComponentRef Id="AppComponent" />
+    <ComponentGroup Id="RedisServiceComponents" Directory="INSTALLFOLDER">
+      <Component Id="ServiceExecutable">
+        <File Source="RedisService.exe" />
+
+        <ServiceInstall Id="ServiceInstaller"
+                        Type="ownProcess"
+                        Name="Redis"
+                        DisplayName="Redis"
+                        Description="Redis"
+                        Start="auto"
+                        ErrorControl="normal" />
+
+        <ServiceControl Id="StartService"
+                        Start="install"
+                        Stop="both"
+                        Remove="uninstall"
+                        Name="Redis"
+                        Wait="true" />
+      </Component>
+    </ComponentGroup>
+         <ComponentGroup Id="RedisComponents" Directory="INSTALLFOLDER">
+                <Files Include="*.dll" />
+                <Files Include="*.conf" />
+                <File Source="redis-benchmark.exe" />
+                <File Source="redis-check-aof.exe" />
+                <File Source="redis-check-rdb.exe" />
+                <File Source="redis-cli.exe" />
+                <File Source="redis-sentinel.exe" />
+                <File Source="redis-server.exe" />
+         </ComponentGroup>
+
+    <Feature Id="Redis">
+      <ComponentGroupRef Id="RedisServiceComponents"/>
+      <ComponentGroupRef Id="RedisComponents"/>
     </Feature>
-  </Product>
+  </Package>
 </Wix>
