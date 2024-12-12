@@ -4,19 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Version'
+        description: "Version"
         required: true
         default: "6.2.13"
         type: string
       make_latest:
-        description: 'Latest'
+        description: "Latest"
         default: false
         type: boolean
       prerelease:
-        description: 'Pre-release'
+        description: "Pre-release"
         default: false
         type: boolean
-        
+
 jobs:
   build:
     runs-on: windows-latest
@@ -37,7 +37,6 @@ jobs:
       - run: |
           dotnet publish -c Release -r win-x64 --sc
 
-
       - uses: msys2/setup-msys2@v2
         with:
           update: true
@@ -49,16 +48,30 @@ jobs:
           mkdir ${{ env.REDIS_DIST }}-msys2
           sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h
           tar -xzf redis-${{ env.RELEASE_VERSION }}.tar.gz
-          cd redis-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh
-          sed -i 's/\"\;/\"/' asciilogo.h
-          echo '" Redis for Windows Project Home \n"' >> asciilogo.h
-          echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h
-          cd ..
           make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0"
           find . -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "$workspace/${{ env.REDIS_DIST }}-msys2" \;
           cd $workspace
-          cp README.md README.zh_CN.md start.bat /usr/bin/msys-2.0.dll /usr/bin/msys-crypto-3.dll /usr/bin/msys-ssl-3.dll ${{ env.REDIS_DIST }}-msys2
-          sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          cp /usr/bin/msys-2.0.dll /usr/bin/msys-crypto-3.dll /usr/bin/msys-ssl-3.dll ${{ env.REDIS_DIST }}-msys2
+          sed -i '/^bind/c\bind 100\.100\.100\.11 127\.0\.0\.1' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          sed -i 's/^pidfile/# pidfile/' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          sed -i '/^logfile/c\logfile "\./logs/redis\.log"' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          sed -i 's/^# save ""/save ""/' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          sed -i '/^# masterauth/c\masterauth morpheus+redis' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          sed -i '/^# repl-backlog-size/c\repl-backlog-size 100mb' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          sed -i '/^# requirepass/c\requirepass morpheus+redis' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          sed -i 's/^appendonly no/appendonly yes/' ${{ env.REDIS_DIST }}-msys2/redis.conf
+          sed -i '/^# bind/c\bind 100\.100\.100\.11 127\.0\.0\.1' ${{ env.REDIS_DIST }}-msys2/sentinel.conf
+          sed -i 's/^# protected-mode/protected-mode/' ${{ env.REDIS_DIST }}-msys2/sentinel.conf
+          sed -i 's/^pidfile/# pidfile/' ${{ env.REDIS_DIST }}-msys2/sentinel.conf
+          sed -i '/^logfile/c\logfile "\./logs/sentinel\.log"' ${{ env.REDIS_DIST }}-msys2/sentinel.conf
+          sed -i '/^dir/c\dir \./' ${{ env.REDIS_DIST }}-msys2/sentinel.conf
+          sed -i 's/^sentinel monitor mymaster 127.0.0.1/sentinel monitor mymaster 100.100.100.11/' ${{ env.REDIS_DIST }}-msys2/sentinel.conf
+          sed -i '/^# sentinel auth-pass mymaster/c\sentinel auth-pass mymaster morpheus+redis' ${{ env.REDIS_DIST }}-msys2/sentinel.conf
+          sed -i '/^sentinel failover-timeout mymaster/c\sentinel failover-timeout mymaster 120000' ${{ env.REDIS_DIST }}-msys2/sentinel.conf
+          mv ${{ env.REDIS_DIST }}-msys2/redis-check-aof ${{ env.REDIS_DIST }}-msys2/redis-check-aof.exe
+          mv ${{ env.REDIS_DIST }}-msys2/redis-check-rdb ${{ env.REDIS_DIST }}-msys2/redis-check-rdb.exe
+          mv ${{ env.REDIS_DIST }}-msys2/redis-sentinel ${{ env.REDIS_DIST }}-msys2/redis-sentinel.exe
+          mkdir ${{ env.REDIS_DIST }}-msys2/logs
           zip -q -r ${{ env.REDIS_DIST }}-msys2.zip ${{ env.REDIS_DIST }}-msys2
           cp install_redis_service.bat uninstall_redis_service.bat publish/* ${{ env.REDIS_DIST }}-msys2/
           mv ${{ env.REDIS_DIST }}-msys2 ${{ env.REDIS_DIST }}-msys2-with-Service
@@ -70,7 +83,7 @@ jobs:
         run: |
           $REDIS_MSYS2_VERSION_INFO=(./${{ env.REDIS_DIST }}-msys2-with-Service/redis-server.exe --version )
           echo $REDIS_MSYS2_VERSION_INFO
-          # If ( -not ( $REDIS_MSYS2_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
+          # If ( -not ( $REDIS_MSYS2_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) {
           #   Write-Output "msys2 verification failed"
           #   exit 1
           # }
@@ -87,16 +100,30 @@ jobs:
           mkdir ${{ env.REDIS_DIST }}-cygwin ;
           sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h ;
           rm -rf redis-${{ env.RELEASE_VERSION }} && tar -xzf redis-${{ env.RELEASE_VERSION }}.tar.gz ;
-          cd redis-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh ;
-          sed -i 's/\"\;/\"/' asciilogo.h ;
-          echo '" Redis for Windows Project Home \n"' >> asciilogo.h ;
-          echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
-          cd .. ;
           make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" ;
           find . -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "$workspace/${{ env.REDIS_DIST }}-cygwin" \; ;
           cd $workspace ;
-          cp README.md README.zh_CN.md start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll ${{ env.REDIS_DIST }}-cygwin ;
-          sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.REDIS_DIST }}-cygwin/redis.conf ;
+          cp /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll ${{ env.REDIS_DIST }}-cygwin ;
+          sed -i '/^bind/c\bind 100\.100\.100\.11 127\.0\.0\.1' ${{ env.REDIS_DIST }}-cygwin/redis.conf
+          sed -i 's/^pidfile/# pidfile/' ${{ env.REDIS_DIST }}-cygwin/redis.conf
+          sed -i '/^logfile/c\logfile "\./logs/redis\.log"' ${{ env.REDIS_DIST }}-cygwin/redis.conf
+          sed -i 's/^# save ""/save ""/' ${{ env.REDIS_DIST }}-cygwin/redis.conf
+          sed -i '/^# masterauth/c\masterauth morpheus+redis' ${{ env.REDIS_DIST }}-cygwin/redis.conf
+          sed -i '/^# repl-backlog-size/c\repl-backlog-size 100mb' ${{ env.REDIS_DIST }}-cygwin/redis.conf
+          sed -i '/^# requirepass/c\requirepass morpheus+redis' ${{ env.REDIS_DIST }}-cygwin/redis.conf
+          sed -i 's/^appendonly no/appendonly yes/' ${{ env.REDIS_DIST }}-cygwin/redis.conf
+          sed -i '/^# bind/c\bind 100\.100\.100\.11 127\.0\.0\.1' ${{ env.REDIS_DIST }}-cygwin/sentinel.conf
+          sed -i 's/^# protected-mode/protected-mode/' ${{ env.REDIS_DIST }}-cygwin/sentinel.conf
+          sed -i 's/^pidfile/# pidfile/' ${{ env.REDIS_DIST }}-cygwin/sentinel.conf
+          sed -i '/^logfile/c\logfile "\./logs/sentinel\.log"' ${{ env.REDIS_DIST }}-cygwin/sentinel.conf
+          sed -i '/^dir/c\dir \./' ${{ env.REDIS_DIST }}-cygwin/sentinel.conf
+          sed -i 's/^sentinel monitor mymaster 127.0.0.1/sentinel monitor mymaster 100.100.100.11/' ${{ env.REDIS_DIST }}-cygwin/sentinel.conf
+          sed -i '/^# sentinel auth-pass mymaster/c\sentinel auth-pass mymaster morpheus+redis' ${{ env.REDIS_DIST }}-cygwin/sentinel.conf
+          sed -i '/^sentinel failover-timeout mymaster/c\sentinel failover-timeout mymaster 120000' ${{ env.REDIS_DIST }}-cygwin/sentinel.conf
+          mv ${{ env.REDIS_DIST }}-cygwin/redis-check-aof ${{ env.REDIS_DIST }}-cygwin/redis-check-aof.exe
+          mv ${{ env.REDIS_DIST }}-cygwin/redis-check-rdb ${{ env.REDIS_DIST }}-cygwin/redis-check-rdb.exe
+          mv ${{ env.REDIS_DIST }}-cygwin/redis-sentinel ${{ env.REDIS_DIST }}-cygwin/redis-sentinel.exe
+          mkdir ${{ env.REDIS_DIST }}-cygwin/logs
           zip -q -r ${{ env.REDIS_DIST }}-cygwin.zip ${{ env.REDIS_DIST }}-cygwin ;
           cp install_redis_service.bat uninstall_redis_service.bat publish/* ${{ env.REDIS_DIST }}-cygwin/ ;
           mv ${{ env.REDIS_DIST }}-cygwin ${{ env.REDIS_DIST }}-cygwin-with-Service ;
@@ -108,7 +135,7 @@ jobs:
         run: |
           $REDIS_CYGWIN_VERSION_INFO=(./${{ env.REDIS_DIST }}-cygwin-with-Service/redis-server.exe --version )
           echo $REDIS_CYGWIN_VERSION_INFO
-          # If ( -not ( $REDIS_CYGWIN_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
+          # If ( -not ( $REDIS_CYGWIN_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) {
           #   Write-Output "cygwin verification failed"
           #   exit 1
           # }
@@ -122,7 +149,7 @@ jobs:
           Get-FileHash .\${{ env.REDIS_DIST }}-msys2.zip | Format-List | Out-File -Append .\redis_latest_body.txt
           Get-FileHash .\${{ env.REDIS_DIST }}-msys2-with-Service.zip | Format-List
           Get-FileHash .\${{ env.REDIS_DIST }}-msys2-with-Service.zip | Format-List | Out-File -Append .\redis_latest_body.txt
-          
+
           Get-FileHash .\${{ env.REDIS_DIST }}-cygwin.zip | Format-List
           Get-FileHash .\${{ env.REDIS_DIST }}-cygwin.zip | Format-List | Out-File -Append .\redis_latest_body.txt
           Get-FileHash .\${{ env.REDIS_DIST }}-cygwin-with-Service.zip | Format-List
@@ -132,7 +159,7 @@ jobs:
         if: ${{ success() }}
         run: |
           "From workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" | Out-File -Append .\redis_latest_body.txt
-        
+
       - name: Release
         if: ${{ success() }}
         uses: softprops/action-gh-release@v2
