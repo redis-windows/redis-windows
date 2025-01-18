@@ -52,7 +52,7 @@ jobs:
           cd redis-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh
           sed -i 's/\"\;/\"/' asciilogo.h
           echo '" Redis for Windows Project Home \n"' >> asciilogo.h
-          echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h
+          echo '" yukuaixia  \n\n";' >> asciilogo.h
           cd ..
           make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0"
           find . -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "$workspace/${{ env.REDIS_DIST }}-msys2" \;
