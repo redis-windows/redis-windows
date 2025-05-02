@@ -57,7 +57,7 @@ jobs:
           make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0"
           find . -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "$workspace/${{ env.REDIS_DIST }}-msys2" \;
           cd $workspace
-          cp README.md README.zh_CN.md start.bat /usr/bin/msys-2.0.dll /usr/bin/msys-crypto-3.dll /usr/bin/msys-ssl-3.dll ${{ env.REDIS_DIST }}-msys2
+          cp README.md README.zh_CN.md start.bat /usr/bin/msys-2.0.dll /usr/bin/msys-crypto-3.dll /usr/bin/msys-ssl-3.dll /usr/bin/msys-gcc_s-seh-1.dll /usr/bin/msys-stdc++-6.dll ${{ env.REDIS_DIST }}-msys2
           sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.REDIS_DIST }}-msys2/redis.conf
           zip -q -r ${{ env.REDIS_DIST }}-msys2.zip ${{ env.REDIS_DIST }}-msys2
           cp install_redis_service.bat uninstall_redis_service.bat publish/* ${{ env.REDIS_DIST }}-msys2/
@@ -70,48 +70,10 @@ jobs:
         run: |
           $REDIS_MSYS2_VERSION_INFO=(./${{ env.REDIS_DIST }}-msys2-with-Service/redis-server.exe --version )
           echo $REDIS_MSYS2_VERSION_INFO
-          # If ( -not ( $REDIS_MSYS2_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
-          #   Write-Output "msys2 verification failed"
-          #   exit 1
-          # }
-
-      - uses: cygwin/cygwin-install-action@master
-        with:
-          packages: make gcc-core pkg-config libssl-devel zip
-      - name: cygwin Build Redis
-        env:
-          CYGWIN_NOWINPATH: 1
-        if: ${{ success() }}
-        run: >-
-          workspace=$(pwd) ;
-          mkdir ${{ env.REDIS_DIST }}-cygwin ;
-          sed -i 's/__GNU_VISIBLE/1/' /usr/include/dlfcn.h ;
-          rm -rf redis-${{ env.RELEASE_VERSION }} && tar -xzf redis-${{ env.RELEASE_VERSION }}.tar.gz ;
-          cd redis-${{ env.RELEASE_VERSION }}/src && ./mkreleasehdr.sh ;
-          sed -i 's/\"\;/\"/' asciilogo.h ;
-          echo '" Redis for Windows Project Home \n"' >> asciilogo.h ;
-          echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
-          cd .. ;
-          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" ;
-          find . -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "$workspace/${{ env.REDIS_DIST }}-cygwin" \; ;
-          cd $workspace ;
-          cp README.md README.zh_CN.md start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll ${{ env.REDIS_DIST }}-cygwin ;
-          sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.REDIS_DIST }}-cygwin/redis.conf ;
-          zip -q -r ${{ env.REDIS_DIST }}-cygwin.zip ${{ env.REDIS_DIST }}-cygwin ;
-          cp install_redis_service.bat uninstall_redis_service.bat publish/* ${{ env.REDIS_DIST }}-cygwin/ ;
-          mv ${{ env.REDIS_DIST }}-cygwin ${{ env.REDIS_DIST }}-cygwin-with-Service ;
-          zip -q -r ${{ env.REDIS_DIST }}-cygwin-with-Service.zip ${{ env.REDIS_DIST }}-cygwin-with-Service
-        shell: bash
-
-      - name: Verify cygwin version
-        if: ${{ success() }}
-        run: |
-          $REDIS_CYGWIN_VERSION_INFO=(./${{ env.REDIS_DIST }}-cygwin-with-Service/redis-server.exe --version )
-          echo $REDIS_CYGWIN_VERSION_INFO
-          # If ( -not ( $REDIS_CYGWIN_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
-          #   Write-Output "cygwin verification failed"
-          #   exit 1
-          # }
+          If ( -not ( $REDIS_MSYS2_VERSION_INFO -match "${{ env.RELEASE_VERSION }}" ) ) { 
+            Write-Output "msys2 verification failed"
+            exit 1
+          }
 
       - name: Calculate the hash value
         if: ${{ success() }}
@@ -123,10 +85,6 @@ jobs:
           Get-FileHash .\${{ env.REDIS_DIST }}-msys2-with-Service.zip | Format-List
           Get-FileHash .\${{ env.REDIS_DIST }}-msys2-with-Service.zip | Format-List | Out-File -Append .\redis_latest_body.txt
           
-          Get-FileHash .\${{ env.REDIS_DIST }}-cygwin.zip | Format-List
-          Get-FileHash .\${{ env.REDIS_DIST }}-cygwin.zip | Format-List | Out-File -Append .\redis_latest_body.txt
-          Get-FileHash .\${{ env.REDIS_DIST }}-cygwin-with-Service.zip | Format-List
-          Get-FileHash .\${{ env.REDIS_DIST }}-cygwin-with-Service.zip | Format-List | Out-File -Append .\redis_latest_body.txt
 
       - name: Add from workflow
         if: ${{ success() }}
@@ -144,7 +102,5 @@ jobs:
           make_latest: ${{ inputs.make_latest }}
           prerelease: ${{ inputs.prerelease }}
           files: |
-            ${{ env.REDIS_DIST }}-cygwin.zip
-            ${{ env.REDIS_DIST }}-cygwin-with-Service.zip
             ${{ env.REDIS_DIST }}-msys2.zip
             ${{ env.REDIS_DIST }}-msys2-with-Service.zip
