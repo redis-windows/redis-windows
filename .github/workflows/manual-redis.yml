@@ -6,7 +6,7 @@ on:
       tag_name:
         description: 'Redis Version'
         required: true
-        default: "7.0.14"
+        default: "6.0.9"
         type: string
       make_latest:
         description: 'Mark as Latest Release'
