@@ -36,7 +36,7 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$version"
           Add-Content -Path $env:GITHUB_ENV -Value "REDIS_DIST=Redis-$version-Windows-x64"
           
-          Invoke-WebRequest -Uri "https://github.com/redis/redis/archive/refs/tags/$version.tar.gz" -OutFile "redis-$version.tar.gz"
+          Invoke-WebRequest -Uri "https://github.com/ctripcorp/Redis-On-Rocks/archive/refs/heads/feat/xredis_dev.zip" -OutFile "redis-6.0.9.zip"
           
           $releaseInfo = ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'Bearer ${{ secrets.GITHUB_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/tags/$version").Content
           $releaseInfo.body -Replace '\#1', 'https://github.com/redis/redis/pull/1' | Set-Content .\redis_latest_body.txt
@@ -53,7 +53,7 @@ jobs:
         with:
           name: redis-source
           path: |
-            redis-${{ env.RELEASE_VERSION }}.tar.gz
+            redis-6.0.9.zip
             redis_latest_body.txt
             publish
 
