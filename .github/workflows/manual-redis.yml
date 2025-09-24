@@ -1,0 +1,27 @@
+name: Manual Build Redis
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Redis Version'
+        required: true
+        default: "7.0.14"
+        type: string
+      make_latest:
+        description: 'Mark as Latest Release'
+        default: false
+        type: boolean
+      prerelease:
+        description: 'Mark as Pre-release'
+        default: false
+        type: boolean
+
+jobs:
+  build-redis:
+    uses: ./.github/workflows/build-redis.yml
+    with:
+      release_version: ${{ inputs.tag_name }}
+      make_latest: ${{ inputs.make_latest }}
+      prerelease: ${{ inputs.prerelease }}
+    secrets: inherit

@@ -1,0 +1,60 @@
+name: Cron Build Redis
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 每天在 UTC 1:00 (凌晨1点) 运行
+  workflow_dispatch:  # 也允许手动触发
+
+jobs:
+  check-new-version:
+    runs-on: windows-latest
+    outputs:
+      new_version_found: ${{ steps.check.outputs.new_version_found }}
+      redis_version: ${{ steps.check.outputs.redis_version }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for new Redis version
+        id: check
+        run: |
+          # 确保版本文件存在
+          If (-not (Test-Path -Path .github\redis_latest_version.txt)) { 
+            New-Item -Path .github -ItemType Directory -Force | Out-Null
+            Add-Content -Path .github\redis_latest_version.txt -Value "" -NoNewline
+          }
+          
+          # 获取最新的Redis版本
+          $res = ConvertFrom-Json(Invoke-WebRequest -Headers @{'Authorization' = 'token ${{ secrets.GITHUB_TOKEN }}'} -Uri "https://api.github.com/repos/redis/redis/releases/latest").Content
+          $currentVersion = Get-Content .github\redis_latest_version.txt
+          
+          # 如果版本相同，则退出
+          If ($res.tag_name -eq $currentVersion) { 
+            Write-Output "No new version found. Current: $currentVersion"
+            echo "new_version_found=false" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+          
+          # 如果有新版本，设置输出变量
+          echo "new_version_found=true" >> $env:GITHUB_OUTPUT
+          echo "redis_version=$($res.tag_name)" >> $env:GITHUB_OUTPUT
+          Write-Output "New version found: $($res.tag_name) (current: $currentVersion)"
+          
+          # 更新版本文件
+          $res.tag_name | Out-File -FilePath .github\redis_latest_version.txt -NoNewline -Encoding ascii
+          
+          # 提交更新的版本文件
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .github\redis_latest_version.txt
+          git commit -m "update redis latest version to $($res.tag_name)"
+          git push
+
+  build-redis:
+    needs: check-new-version
+    if: ${{ needs.check-new-version.outputs.new_version_found == 'true' }}
+    uses: ./.github/workflows/build-redis.yml
+    with:
+      release_version: ${{ needs.check-new-version.outputs.redis_version }}
+      make_latest: true
+    secrets: inherit
