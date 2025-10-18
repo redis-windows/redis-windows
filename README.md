@@ -49,4 +49,9 @@ Project Home: https://github.com/redis-windows/redis-windows
 
 
 ## Disclaimer
+
+This GitHub organization and its repositories are not affiliated with, endorsed by, or sponsored by Redis Ltd. The license provided here applies only to the content of this repository, and does not apply to the official [Redis](https://github.com/redis/redis) project or its software.
+
 We suggest that you use it for local development and follow Redis official guidance to deploy it on Linux for production environment. This project doesn't bear any responsibility for any losses caused by using it and is only for learning and exchange purposes.
+
+
