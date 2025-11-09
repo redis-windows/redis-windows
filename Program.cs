@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace RedisService
 {
@@ -13,71 +13,125 @@ namespace RedisService
                 configFilePath = args[1];
             }
 
-            IHost host = Host.CreateDefaultBuilder().UseWindowsService().ConfigureServices((hostContext, services) =>
-            {
-                services.AddHostedService(serviceProvider =>
-                        new RedisService(configFilePath));
-            }).Build();
+            IHost host = Host.CreateDefaultBuilder()
+                .UseWindowsService()
+                .ConfigureServices((hostContext, services) =>
+                {
+                    services.AddHostedService(_ => new RedisService(configFilePath));
+                })
+                .Build();
 
             host.Run();
         }
     }
 
-
-
-    public class RedisService(string configFilePath) : BackgroundService
+    public class RedisService : BackgroundService
     {
+        private readonly string configFilePath;
 
-        private Process? redisProcess = new();
+        private Process? redisProcess;
+
+        private string redisServerPath = string.Empty;
+
+        private string configPathForRedis = string.Empty;
 
 
-        public override Task StartAsync(CancellationToken stoppingToken)
+        public RedisService(string configFilePath)
         {
+            this.configFilePath = configFilePath;
+        }
 
-            var basePath = Path.Combine(AppContext.BaseDirectory);
 
-            if (!Path.IsPathRooted(configFilePath))
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            var basePath = AppContext.BaseDirectory;
+            string conf = configFilePath;
+
+            if (!Path.IsPathRooted(conf))
+                conf = Path.Combine(basePath, conf);
+
+            conf = Path.GetFullPath(conf);
+
+            var diskSymbol = conf[..conf.IndexOf(":")];
+            configPathForRedis = conf
+                .Replace(diskSymbol + ":", "/cygdrive/" + diskSymbol)
+                .Replace("\\", "/");
+
+            redisServerPath = Path.Combine(basePath, "redis-server.exe")
+                .Replace("\\", "/");
+
+            string arguments = $"\"{configPathForRedis}\"";
+
+            redisProcess = Process.Start(new ProcessStartInfo(redisServerPath, arguments)
             {
-                configFilePath = Path.Combine(basePath, configFilePath);
-            }
-
-            configFilePath = Path.GetFullPath(configFilePath);
-
-            var diskSymbol = configFilePath[..configFilePath.IndexOf(":")];
-            var fileConf = configFilePath.Replace(diskSymbol + ":", "/cygdrive/" + diskSymbol).Replace("\\", "/");
-
-            string fileName = Path.Combine(basePath, "redis-server.exe").Replace("\\", "/");
-            string arguments = $"\"{fileConf}\"";
-
-            ProcessStartInfo processStartInfo = new(fileName, arguments)
-            {
-                WorkingDirectory = basePath
-            };
-
-            redisProcess = Process.Start(processStartInfo);
+                WorkingDirectory = basePath,
+                UseShellExecute = false
+            });
 
             return Task.CompletedTask;
         }
-
 
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await Task.Delay(-1, stoppingToken);
+            await Task.Delay(Timeout.Infinite, stoppingToken);
         }
 
 
-
-        public override Task StopAsync(CancellationToken stoppingToken)
+        public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            if (redisProcess != null)
+            if (redisProcess == null || redisProcess.HasExited)
+                return;
+
+            try
             {
-                redisProcess.Kill();
-                redisProcess.Dispose();
+                await TryGracefulShutdownAsync();
+
+                bool exited = await WaitForExitAsync(redisProcess, 5000);
+
+                if (!exited)
+                {
+                    redisProcess.Kill(true);
+                }
+            }
+            catch
+            {
+                if (!redisProcess.HasExited)
+                    redisProcess.Kill(true);
             }
 
-            return Task.CompletedTask;
+            redisProcess.Dispose();
+        }
+
+
+        private async Task TryGracefulShutdownAsync()
+        {
+            string redisCliPath = Path.Combine(AppContext.BaseDirectory, "redis-cli.exe");
+
+            if (!File.Exists(redisCliPath))
+                return;
+
+            var psi = new ProcessStartInfo(redisCliPath, "SHUTDOWN")
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+
+            try
+            {
+                using var cli = Process.Start(psi);
+                if (cli != null)
+                    await cli.WaitForExitAsync();
+            }
+            catch
+            {
+            }
+        }
+
+
+        private static Task<bool> WaitForExitAsync(Process process, int timeoutMs)
+        {
+            return Task.Run(() => process.WaitForExit(timeoutMs));
         }
     }
-
 }
