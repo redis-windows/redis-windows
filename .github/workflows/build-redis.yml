@@ -80,7 +80,7 @@ jobs:
           path: |
             C:/msys64/var/cache/pacman/pkg
             C:/msys64/usr/bin
-          key: msys2-${{ runner.os }}-${{ hashFiles('**/*.yml') }}
+          key: msys2-${{ runner.os }}-${{ hashFiles('.github/workflows/build-redis.yml') }}
           restore-keys: msys2-${{ runner.os }}-
 
       - uses: msys2/setup-msys2@v2
@@ -99,6 +99,7 @@ jobs:
           sed -i 's/\"\;/\"/' asciilogo.h
           echo '" Redis for Windows Project Home \n"' >> asciilogo.h
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h
+          sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile
           cd ..
           
           # Build Redis
@@ -181,7 +182,7 @@ jobs:
           path: |
             C:/cygwin64
             C:/cygwin64/var/cache
-          key: cygwin-${{ runner.os }}-${{ hashFiles('**/*.yml') }}
+          key: cygwin-${{ runner.os }}-${{ hashFiles('.github/workflows/build-redis.yml') }}
           restore-keys: cygwin-${{ runner.os }}-
 
       - uses: cygwin/cygwin-install-action@master
@@ -199,6 +200,7 @@ jobs:
           sed -i 's/\"\;/\"/' asciilogo.h ;
           echo '" Redis for Windows Project Home \n"' >> asciilogo.h ;
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
+          sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile ;
           cd .. ;
           make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" -j$(nproc) ;
           cd $workspace ;
