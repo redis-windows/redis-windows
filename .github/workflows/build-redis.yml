@@ -284,6 +284,8 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          overwrite_files: false
+          fail_on_unmatched_files: true
           token: ${{ secrets.GITHUB_TOKEN }}
           name: Redis ${{ env.RELEASE_VERSION }} for Windows
           tag_name: ${{ env.RELEASE_VERSION }}
