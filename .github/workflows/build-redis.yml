@@ -105,7 +105,12 @@ jobs:
           cd ..
 
           # Build Redis
-          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" -j$(nproc)
+          # -O2: Standard production optimization level (significant speedup over -O0)
+          # -Wno-char-subscripts: Suppress char subscript warnings for MSYS2 compatibility
+          # -march=x86-64-v2: Target modern x86-64 CPUs (SSE4.2, POPCNT, CMPXCHG16B)
+          # -fomit-frame-pointer: Free up a register for general use (standard for x86-64 optimized builds)
+          # -funroll-loops: Unroll loops for better throughput in tight loops (hash, string ops)
+          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O2 -march=x86-64-v2 -fomit-frame-pointer -funroll-loops" -j$(nproc)
 
           # Create basic package (without service)
           cd $workspace
@@ -204,7 +209,7 @@ jobs:
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
           sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile ;
           cd .. ;
-          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" -j$(nproc) ;
+          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O2 -march=x86-64-v2 -fomit-frame-pointer -funroll-loops" -j$(nproc) ;
           cd $workspace ;
           mkdir -p ${{ env.REDIS_DIST }}-cygwin ;
           find redis-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.REDIS_DIST }}-cygwin" \; ;
