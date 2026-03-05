@@ -104,8 +104,8 @@ jobs:
           sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile
           cd ..
 
-          # Build Redis
-          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" -j$(nproc)
+          # Build Redis with optimizations enabled for better performance
+          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts" -j$(nproc)
 
           # Create basic package (without service)
           cd $workspace
@@ -204,7 +204,7 @@ jobs:
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
           sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile ;
           cd .. ;
-          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" -j$(nproc) ;
+          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts" -j$(nproc) ;
           cd $workspace ;
           mkdir -p ${{ env.REDIS_DIST }}-cygwin ;
           find redis-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.REDIS_DIST }}-cygwin" \; ;
