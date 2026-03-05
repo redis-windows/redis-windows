@@ -102,8 +102,6 @@ jobs:
           echo '" Redis for Windows Project Home \n"' >> asciilogo.h
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h
           sed -i 's/ module_tests//' Makefile
-          # Fix module test linking: use gcc (not ld) on MSYS2/Cygwin so libc is linked
-          sed -i 's/ifeq ($(uname_S),Linux)/ifneq ($(uname_S),Darwin)/' ../tests/modules/Makefile
           cd ..
 
           # Build Redis
@@ -210,7 +208,6 @@ jobs:
           echo '" Redis for Windows Project Home \n"' >> asciilogo.h ;
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
           sed -i 's/ module_tests//' Makefile ;
-          sed -i 's/ifeq ($(uname_S),Linux)/ifneq ($(uname_S),Darwin)/' ../tests/modules/Makefile ;
           cd .. ;
           make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O2 -march=x86-64-v2 -fomit-frame-pointer -funroll-loops" -j$(nproc) ;
           cd $workspace ;
