@@ -130,12 +130,6 @@ Or use `RedisService.exe` which handles path conversion automatically.
 2. Use graceful shutdown (`redis-cli SHUTDOWN` or `Ctrl+C`), don't kill the process
 3. Use the same `--dir` when restarting
 
-### RDB save failed on shutdown?
-
-Fixed in version 2.0.0. `RedisService.exe` now handles paths correctly.
-
-See [Issue #69](https://github.com/redis-windows/redis-windows/issues/69).
-
 ## Technical Details
 
 - Build toolchain: MSYS2 / Cygwin
@@ -146,4 +140,8 @@ See [Issue #69](https://github.com/redis-windows/redis-windows/issues/69).
 
 English | [简体中文](README.zh_CN.md)
 
-[![JetBrains](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)](https://www.jetbrains.com/?from=redis-windows)
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or sponsored by Redis Ltd. The license provided here applies only to this repository, not to the official Redis project.
+
+This is recommended for local development only. For production environments, please follow Redis official guidance and deploy on Linux. This project is not responsible for any losses caused by its use.

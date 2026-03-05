@@ -130,12 +130,6 @@ redis-server.exe /cygdrive/c/config/redis.conf
 2. 使用 `redis-cli SHUTDOWN` 或 `Ctrl+C` 优雅关闭，不要强制杀进程
 3. 重启时使用相同的 `--dir` 参数
 
-### 关闭时 RDB 保存失败？
-
-此问题已在 2.0.0 修复。使用 `RedisService.exe` 会自动处理路径。
-
-详见 [Issue #69](https://github.com/redis-windows/redis-windows/issues/69)。
-
 ## 技术细节
 
 - 编译工具：MSYS2 / Cygwin
@@ -146,4 +140,8 @@ redis-server.exe /cygdrive/c/config/redis.conf
 
 [English](README.md) | 简体中文
 
-[![JetBrains](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)](https://www.jetbrains.com/?from=redis-windows)
+## 免责声明
+
+本项目与 Redis Ltd. 无关。提供的许可证仅适用于本仓库内容，不适用于官方 Redis 项目。
+
+建议仅在本地开发环境使用。生产环境请按照 Redis 官方指导在 Linux 上部署。本项目不对使用造成的任何损失承担责任。
