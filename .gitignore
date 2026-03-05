@@ -2,3 +2,4 @@ obj/
 bin/
 publish/
 .claude/
+redis/
