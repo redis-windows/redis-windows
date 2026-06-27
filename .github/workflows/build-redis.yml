@@ -105,12 +105,12 @@ jobs:
           cd ..
 
           # Build Redis
-          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" -j$(nproc)
+          make BUILD_TLS=yes BUILD_WITH_MODULES=yes CFLAGS="-Wno-char-subscripts -O0" -j$(nproc)
 
           # Create basic package (without service)
           cd $workspace
           mkdir -p ${{ env.REDIS_DIST }}-msys2
-          find redis-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.REDIS_DIST }}-msys2" \;
+          find redis-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\|\.so\)' -exec cp -f "{}" "${{ env.REDIS_DIST }}-msys2" \;
           cp README.md README.zh_CN.md start.bat /usr/bin/msys-2.0.dll /usr/bin/msys-crypto-3.dll /usr/bin/msys-ssl-3.dll /usr/bin/msys-gcc_s-seh-1.dll /usr/bin/msys-stdc++-6.dll ${{ env.REDIS_DIST }}-msys2
           sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.REDIS_DIST }}-msys2/redis.conf
           zip -q -r ${{ env.REDIS_DIST }}-msys2.zip ${{ env.REDIS_DIST }}-msys2
@@ -204,10 +204,10 @@ jobs:
           echo '" https://github.com/redis-windows/redis-windows  \n\n";' >> asciilogo.h ;
           sed -i 's/all: \(.*\) module_tests$/all: \1/' Makefile ;
           cd .. ;
-          make BUILD_TLS=yes CFLAGS="-Wno-char-subscripts -O0" -j$(nproc) ;
+          make BUILD_TLS=yes BUILD_WITH_MODULES=yes CFLAGS="-Wno-char-subscripts -O0" -j$(nproc) ;
           cd $workspace ;
           mkdir -p ${{ env.REDIS_DIST }}-cygwin ;
-          find redis-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.REDIS_DIST }}-cygwin" \; ;
+          find redis-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\|\.so\)' -exec cp -f "{}" "${{ env.REDIS_DIST }}-cygwin" \; ;
           cp README.md README.zh_CN.md start.bat /bin/cygcrypto-3.dll /bin/cygwin1.dll /bin/cygssl-3.dll /bin/cygz.dll /bin/cyggcc_s-seh-1.dll /bin/cygstdc++-6.dll /bin/cygiconv-2.dll /bin/cygintl-8.dll ${{ env.REDIS_DIST }}-cygwin ;
           sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.REDIS_DIST }}-cygwin/redis.conf ;
           zip -q -r ${{ env.REDIS_DIST }}-cygwin.zip ${{ env.REDIS_DIST }}-cygwin ;
