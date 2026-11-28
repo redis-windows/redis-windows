@@ -14,6 +14,10 @@ on:
         required: false
         type: boolean
         default: false
+      publish_release:
+        required: false
+        type: boolean
+        default: true
     outputs:
       release_version:
         description: "The version of Redis being built"
@@ -266,6 +270,7 @@ jobs:
 
   release:
     needs: [prepare, build-msys2, build-cygwin]
+    if: ${{ inputs.publish_release }}
     runs-on: windows-latest
 
     steps:
