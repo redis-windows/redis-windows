@@ -111,7 +111,15 @@ jobs:
           cd $workspace
           mkdir -p ${{ env.REDIS_DIST }}-msys2
           find redis-${{ env.RELEASE_VERSION }} -mindepth 1 -maxdepth 2 -type f -regex '.*\(\.exe\|\.conf\)' -exec cp -f "{}" "${{ env.REDIS_DIST }}-msys2" \;
-          cp README.md README.zh_CN.md start.bat /usr/bin/msys-2.0.dll /usr/bin/msys-crypto-3.dll /usr/bin/msys-ssl-3.dll /usr/bin/msys-gcc_s-seh-1.dll /usr/bin/msys-stdc++-6.dll ${{ env.REDIS_DIST }}-msys2
+          cp README.md README.zh_CN.md start.bat /usr/bin/msys-2.0.dll /usr/bin/msys-gcc_s-seh-1.dll /usr/bin/msys-stdc++-6.dll ${{ env.REDIS_DIST }}-msys2
+          for library in crypto ssl; do
+            mapfile -t dlls < <(pacman -Ql libopenssl | awk -v prefix="/usr/bin/msys-$library-" 'index($2, prefix) == 1 && $2 ~ /[.]dll$/ {print $2}')
+            if (( ${#dlls[@]} != 1 )); then
+              echo "Expected one installed OpenSSL $library DLL, found ${#dlls[@]}" >&2
+              exit 1
+            fi
+            cp "${dlls[0]}" ${{ env.REDIS_DIST }}-msys2
+          done
           sed -i 's/pidfile \/var\/run/pidfile ./' ${{ env.REDIS_DIST }}-msys2/redis.conf
           zip -q -r ${{ env.REDIS_DIST }}-msys2.zip ${{ env.REDIS_DIST }}-msys2
 
