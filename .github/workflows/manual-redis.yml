@@ -16,6 +16,10 @@ on:
         description: 'Mark as Pre-release'
         default: false
         type: boolean
+      publish_release:
+        description: 'Publish build artifacts to Releases'
+        default: false
+        type: boolean
 
 jobs:
   build-redis:
@@ -24,4 +28,5 @@ jobs:
       release_version: ${{ inputs.tag_name }}
       make_latest: ${{ inputs.make_latest }}
       prerelease: ${{ inputs.prerelease }}
+      publish_release: ${{ inputs.publish_release }}
     secrets: inherit
